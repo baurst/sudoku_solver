@@ -33,12 +33,8 @@ impl SudokuCandidates {
                 continue;
             }
             let dupl_idx = self.grid[el_row_idx][col_idx].iter().position(|x| *x == el);
-
-            match dupl_idx {
-                Some(x) => {
-                    self.grid[el_row_idx][col_idx].remove(x);
-                }
-                None => {}
+            if let Some(x) = dupl_idx {
+                self.grid[el_row_idx][col_idx].remove(x);
             }
         }
 
@@ -48,15 +44,29 @@ impl SudokuCandidates {
                 continue;
             }
             let dupl_idx = self.grid[row_idx][el_col_idx].iter().position(|x| *x == el);
-            match dupl_idx {
-                Some(x) => {
-                    self.grid[row_idx][el_col_idx].remove(x);
-                }
-                None => {}
+            if let Some(x) = dupl_idx {
+                self.grid[row_idx][el_col_idx].remove(x);
             }
         }
 
         // clean cell
+        let cell_row_idx = el_row_idx / 3;
+        let cell_col_idx = el_col_idx / 3;
+
+        for row_idx_in_cell in 0..3 {
+            for col_idx_in_cell in 0..3 {
+                let row_idx = cell_row_idx * 3 + row_idx_in_cell;
+                let col_idx = cell_col_idx * 3 + col_idx_in_cell;
+                if row_idx == el_row_idx || col_idx == el_col_idx {
+                    // we have already elminated the row and colum here above
+                    continue;
+                }
+                let dupl_idx = self.grid[row_idx][el_col_idx].iter().position(|x| *x == el);
+                if let Some(x) = dupl_idx {
+                    self.grid[row_idx][col_idx].remove(x);
+                }
+            }
+        }
     }
 }
 
