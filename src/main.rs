@@ -21,9 +21,42 @@ impl SudokuCandidates {
             let col_idx = i % 9;
 
             problem.grid[row_idx][col_idx] = vec![*item];
+
+            problem.eliminate_conflicting_occurences(row_idx, col_idx, *item);
+        }
+        problem
+    }
+    fn eliminate_conflicting_occurences(&mut self, el_row_idx: usize, el_col_idx: usize, el: u8) {
+        // clean row
+        for col_idx in 0..9 {
+            if col_idx == el_col_idx {
+                continue;
+            }
+            let dupl_idx = self.grid[el_row_idx][col_idx].iter().position(|x| *x == el);
+
+            match dupl_idx {
+                Some(x) => {
+                    self.grid[el_row_idx][col_idx].remove(x);
+                }
+                None => {}
+            }
         }
 
-        problem
+        // clean row
+        for row_idx in 0..9 {
+            if row_idx == el_row_idx {
+                continue;
+            }
+            let dupl_idx = self.grid[row_idx][el_col_idx].iter().position(|x| *x == el);
+            match dupl_idx {
+                Some(x) => {
+                    self.grid[row_idx][el_col_idx].remove(x);
+                }
+                None => {}
+            }
+        }
+
+        // clean cell
     }
 }
 
@@ -33,8 +66,7 @@ impl std::fmt::Display for SudokuCandidates {
         for row_idx in 0..9 {
             for col_idx in 0..9 {
                 let cand_str = self.grid[row_idx][col_idx]
-                    .clone()
-                    .into_iter()
+                    .iter()
                     .map(|i| i.to_string())
                     .collect::<String>();
                 let sym = format!("{: >9},", cand_str);
