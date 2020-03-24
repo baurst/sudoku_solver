@@ -1,66 +1,43 @@
-#[derive(Clone, Copy)]
-struct SubGrid {
-    cells: [[Option<usize>; 3]; 3],
-}
-impl SubGrid {
-    fn empty() -> SubGrid {
-        SubGrid {
-            cells: [[None; 3]; 3],
-        }
-    }
+#[derive(Clone, Debug)]
+struct SudokuCandidates {
+    grid: Vec<Vec<Vec<u8>>>,
 }
 
-struct Sudoku {
-    grid: [[SubGrid; 3]; 3],
-}
-
-impl Sudoku {
-    fn empty() -> Sudoku {
-        Sudoku {
-            grid: [[SubGrid::empty(); 3]; 3],
+impl SudokuCandidates {
+    fn initial() -> SudokuCandidates {
+        SudokuCandidates {
+            grid: vec![vec![(1..10).collect::<Vec<u8>>(); 9]; 9],
         }
     }
-    fn from_vec(numbers: Vec<usize>) -> Sudoku {
+    fn from_vec(numbers: Vec<u8>) -> SudokuCandidates {
         assert!(numbers.len() == 81);
-        let mut problem = Sudoku::empty();
+        let mut problem = SudokuCandidates::initial();
 
         for (i, item) in numbers.iter().enumerate() {
-            if *item == 0 as usize {
+            if *item == 0 as u8 {
                 continue;
             }
             let row_idx = i / 9;
             let col_idx = i % 9;
 
-            let subgrid_row_idx = row_idx / 3;
-            let subgrid_col_idx = col_idx / 3;
-
-            let num_row_idx_within_subgrid = row_idx - subgrid_row_idx * 3;
-            let num_col_idx_within_subgrid = col_idx - subgrid_col_idx * 3;
-
-            problem.grid[subgrid_row_idx][subgrid_col_idx].cells[num_row_idx_within_subgrid]
-                [num_col_idx_within_subgrid] = Some(*item);
+            problem.grid[row_idx][col_idx] = vec![*item];
         }
 
         problem
     }
 }
 
-impl std::fmt::Display for Sudoku {
+impl std::fmt::Display for SudokuCandidates {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let mut some_str = "".to_string();
-
         for row_idx in 0..9 {
             for col_idx in 0..9 {
-                let subgrid_row_idx = row_idx / 3;
-                let subgrid_col_idx = col_idx / 3;
-                let num_row_idx_within_subgrid = row_idx - subgrid_row_idx * 3;
-                let num_col_idx_within_subgrid = col_idx - subgrid_col_idx * 3;
-                let sudoku_cell = self.grid[subgrid_row_idx][subgrid_col_idx].cells
-                    [num_row_idx_within_subgrid][num_col_idx_within_subgrid];
-                let sym = match sudoku_cell {
-                    Some(nbr) => format!("{},", nbr),
-                    None => "_,".to_string(),
-                };
+                let cand_str = self.grid[row_idx][col_idx]
+                    .clone()
+                    .into_iter()
+                    .map(|i| i.to_string())
+                    .collect::<String>();
+                let sym = format!("{: >9},", cand_str);
                 some_str.push_str(&sym);
             }
             some_str.push_str(&"\n".to_string());
@@ -70,11 +47,11 @@ impl std::fmt::Display for Sudoku {
     }
 }
 
-fn parse_sudoku(filepath: &str) -> Sudoku {
+fn parse_sudoku(filepath: &str) -> SudokuCandidates {
     use std::fs;
     let contents = fs::read_to_string(filepath).expect("Something went wrong reading the file");
     let mut lines = contents.lines();
-    let problem_raw: Vec<usize> = lines
+    let problem_raw: Vec<u8> = lines
         .next()
         .unwrap()
         .split("")
@@ -83,7 +60,7 @@ fn parse_sudoku(filepath: &str) -> Sudoku {
         .map(|s| s.parse().unwrap())
         .collect();
 
-    Sudoku::from_vec(problem_raw)
+    SudokuCandidates::from_vec(problem_raw)
 }
 
 fn main() {
