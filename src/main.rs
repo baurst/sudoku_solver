@@ -210,7 +210,67 @@ fn parse_sudoku(filepath: &str) -> SudokuCandidates {
     SudokuCandidates::from_vec(problem_raw)
 }
 
-fn solution_has_conflicts(solution: &SudokuCandidates) -> bool {
+use std::collections::HashSet;
+
+use std::hash::Hash;
+
+fn has_unique_elements<T>(iter: T) -> bool
+where
+    T: IntoIterator,
+    T::Item: Eq + Hash,
+{
+    let mut uniq = HashSet::new();
+    iter.into_iter().all(move |x| uniq.insert(x))
+}
+
+fn solution_has_unresolvable_conflicts(solution: &SudokuCandidates) -> bool {
+    // rows okay
+    for row_idx in 0..9 {
+        let mut elems = vec![];
+        for col_idx in 0..9 {
+            if solution.grid[row_idx][col_idx].len() == 1 {
+                elems.push(solution.grid[row_idx][col_idx][0]);
+            }
+        }
+        if !has_unique_elements(elems) {
+            return true;
+        }
+    }
+
+    // cols okay
+    for col_idx in 0..9 {
+        let mut elems = vec![];
+        for row_idx in 0..9 {
+            if solution.grid[row_idx][col_idx].len() == 1 {
+                elems.push(solution.grid[row_idx][col_idx][0]);
+            }
+        }
+        if !has_unique_elements(elems) {
+            return true;
+        }
+    }
+
+    // cells okay
+    for meta_col_idx in 0..3 {
+        for meta_row_idx in 0..3 {
+            let mut cell_elems = vec![];
+            for col_idx in meta_col_idx * 3..meta_col_idx * 3 + meta_col_idx + 3 {
+                for row_idx in meta_row_idx * 3..meta_row_idx * 3 + meta_row_idx + 3 {
+                    if solution.grid[row_idx][col_idx].len() == 1 {
+                        cell_elems.push(solution.grid[row_idx][col_idx][0]);
+                    }
+                }
+            }
+            if !has_unique_elements(cell_elems) {
+                return true;
+            }
+        }
+    }
+
+    false
+}
+
+fn solution_is_correct(solution: &SudokuCandidates) -> bool {
     for col_idx in 0..9 {
         let mut sum_col_elems = 0;
         for row_idx in 0..9 {
@@ -240,7 +300,7 @@ fn check_solution(solution: &SudokuCandidates) -> bool {
             }
         }
     }
-    solution_has_conflicts(solution)
+    solution_is_correct(solution)
 }
 
 fn get_best_place_and_number_to_insert(problem: &SudokuCandidates) -> (usize, usize, u8) {
@@ -319,7 +379,7 @@ fn main() {
         println!("Starting!");
         println!("{}", sudoku_problem);
         let solution = solve_sudoku(&mut sudoku_problem, 0);
-        println!("Solution is valid: {}", solution_has_conflicts(&solution));
+        println!("Solution is valid: {}", solution_is_correct(&solution));
         println!("{}", solution);
     }
 }
