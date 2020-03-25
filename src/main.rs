@@ -1,4 +1,4 @@
-use rand::seq::SliceRandom;
+//use rand::seq::SliceRandom;
 
 #[derive(Clone, Debug)]
 struct SudokuCandidates {
@@ -60,7 +60,6 @@ fn check_conflict_for_element(problem: &SudokuCandidates, row_idx: usize, col_id
     }
 
     // check cell
-    // clean cell
     let cell_row_idx = row_idx / 3;
     let cell_col_idx = col_idx / 3;
 
@@ -208,30 +207,27 @@ fn parse_sudoku(filepath: &str) -> SudokuCandidates {
         .filter(|s| !s.is_empty())
         .map(|s| s.parse().unwrap())
         .collect();
-
     SudokuCandidates::from_vec(problem_raw)
 }
 
-fn _solution_has_conflicts(solution: SudokuCandidates) -> bool {
+fn solution_has_conflicts(solution: &SudokuCandidates) -> bool {
     for col_idx in 0..9 {
         let mut sum_col_elems = 0;
         for row_idx in 0..9 {
             sum_col_elems += solution.grid[row_idx][col_idx][0];
         }
-
-        assert_eq!(sum_col_elems, 9 * 10 / 2);
-        /*
-        if let Some(x) = dupl_idx {
-            self.grid[el_row_idx][col_idx].remove(x);
+        if sum_col_elems != 9 * 10 / 2 {
+            return false;
         }
-        */
     }
     for row_idx in 0..9 {
         let mut sum_row_elems = 0;
         for col_idx in 0..9 {
             sum_row_elems += solution.grid[row_idx][col_idx][0];
         }
-        assert_eq!(sum_row_elems, 9 * 10 / 2);
+        if sum_row_elems != 9 * 10 / 2 {
+            return false;
+        }
     }
     true
 }
@@ -244,7 +240,7 @@ fn check_solution(solution: &SudokuCandidates) -> bool {
             }
         }
     }
-    true
+    solution_has_conflicts(solution)
 }
 
 fn get_best_place_and_number_to_insert(problem: &SudokuCandidates) -> (usize, usize, u8) {
@@ -258,51 +254,28 @@ fn get_best_place_and_number_to_insert(problem: &SudokuCandidates) -> (usize, us
     'outer: for row_idx in 0..9 {
         for col_idx in 0..9 {
             let current_prob_len = problem.grid[row_idx][col_idx].len();
-            assert_ne!(current_prob_len, 0);
-            // match current_prob_len {
-            //     1 => {continue;},
-            //     2 => { best_row = row_idx;
-            //         best_col = col_idx;
-            //         best_el = *problem.grid[row_idx][col_idx]
-            //             .choose(&mut rand::thread_rng())
-            //             .unwrap();
-            //         break 'outer;},
-            //     (> 2) | < shortest_len => {
-            //             best_row = row_idx;
-            //     best_col = col_idx;
-            //     best_el = *problem.grid[row_idx][col_idx]
-            //         .choose(&mut rand::thread_rng())
-            //         .unwrap();
-            //     shortest_len = current_prob_len;
-            //         },
-            //     _ => {panic!("This is not supposed to happen {}",current_prob_len)}
-            // }
             if current_prob_len == 1 {
                 continue;
             } else if current_prob_len == 2 {
                 best_row = row_idx;
                 best_col = col_idx;
                 best_el = problem.grid[row_idx][col_idx][0];
-
-                // .choose(&mut rand::thread_rng())
-                // .unwrap();
                 break 'outer;
             } else if current_prob_len > 2 && current_prob_len < shortest_len {
                 best_row = row_idx;
                 best_col = col_idx;
                 best_el = problem.grid[row_idx][col_idx][0];
-                // .choose(&mut rand::thread_rng())
-                // .unwrap();
                 shortest_len = current_prob_len;
             }
         }
     }
-    //println!("{}, {}, {}", best_row, best_col, best_el);
+    assert_ne!(best_el, 255);
     (best_row, best_col, best_el)
 }
 
 fn solve_sudoku(problem: &mut SudokuCandidates, recursion_depth: usize) -> SudokuCandidates {
-    println!("Recursion depth {}\n{}", recursion_depth, problem);
+    let recursion_depth = recursion_depth + 1;
+
     if check_solution(problem) {
         // base case: only one possible number in each cell, solution found
         problem.clone()
@@ -314,7 +287,10 @@ fn solve_sudoku(problem: &mut SudokuCandidates, recursion_depth: usize) -> Sudok
         problem.grid[row_idx][col_idx] = vec![el];
         let update_worked = remove_from_neighbors(problem, row_idx, col_idx, el);
         if update_worked {
-            let recursion_depth = recursion_depth + 1;
+            println!(
+                "Update worked: row_idx {}, col_idx {}, el {}\n{}",
+                row_idx, col_idx, el, problem
+            );
             solve_sudoku(problem, recursion_depth)
         } else {
             let dupl_idx = problem_bkp.grid[row_idx][col_idx]
@@ -324,21 +300,26 @@ fn solve_sudoku(problem: &mut SudokuCandidates, recursion_depth: usize) -> Sudok
                 problem_bkp.grid[row_idx][col_idx].remove(x);
                 assert!(!problem_bkp.grid[row_idx][col_idx].is_empty());
                 println!(
-                    "Num options left: {}",
-                    problem_bkp.grid[row_idx][col_idx].len()
+                    "Recursion depth {}: Num options left: {}",
+                    problem_bkp.grid[row_idx][col_idx].len(),
+                    recursion_depth
                 );
             }
-            let recursion_depth = recursion_depth + 1;
             solve_sudoku(&mut problem_bkp, recursion_depth)
         }
     }
 }
 
 fn main() {
-    let mut sudoku_problem = parse_sudoku("assets/problem.txt");
+    let probs = vec!["assets/problem_easy.txt", "assets/problem_hard.txt"];
 
-    println!("Starting!");
-    println!("{}", sudoku_problem);
-    let solution = solve_sudoku(&mut sudoku_problem, 0);
-    println!("{}", solution);
+    for prob in probs {
+        let mut sudoku_problem = parse_sudoku(prob);
+
+        println!("Starting!");
+        println!("{}", sudoku_problem);
+        let solution = solve_sudoku(&mut sudoku_problem, 0);
+        println!("Solution is valid: {}", solution_has_conflicts(&solution));
+        println!("{}", solution);
+    }
 }
