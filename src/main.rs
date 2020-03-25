@@ -24,7 +24,7 @@ impl SudokuCandidates {
 
             problem.grid[row_idx][col_idx] = vec![*item];
             //println!("{}", *item);
-            remove_from_neighbors(&mut problem, row_idx, col_idx, *item);
+            problem = remove_from_neighbors(&problem, row_idx, col_idx, *item).unwrap();
             // println!("{}", problem);
         }
         // for row_idx in 0..9 {
@@ -429,11 +429,15 @@ fn main() {
         println!("Starting!");
         println!("{}", sudoku_problem);
         let solution = solve_sudoku(Some(sudoku_problem), 0);
-        let solution = solution.unwrap();
+        if solution.is_none() {
+            println!("Problem unsolvable!");
+        } else {
+            let solution = solution.unwrap();
+            println!("{}", solution);
+        }
         // println!(
         //     "Solution is valid: {}",
         //     solution_is_correct(&solution.unwrap())
         // );
-        println!("{}", solution);
     }
 }
