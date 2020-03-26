@@ -317,6 +317,65 @@ struct InsertionCandidate {
     candidates: Vec<u8>,
 }
 
+fn single_element_in_col(
+    problem: &SudokuCandidates,
+    row_idx: usize,
+    col_idx: usize,
+    el: &u8,
+) -> bool {
+    for row_inner_idx in 0..9 {
+        if row_idx == row_inner_idx {
+            continue;
+        }
+        if problem.grid[row_inner_idx][col_idx].iter().any(|x| x == el) {
+            return false;
+        }
+    }
+    return true;
+}
+
+fn single_element_in_row(
+    problem: &SudokuCandidates,
+    row_idx: usize,
+    col_idx: usize,
+    el: &u8,
+) -> bool {
+    for col_inner_idx in 0..9 {
+        if col_idx == col_inner_idx {
+            continue;
+        }
+        if problem.grid[row_idx][col_inner_idx].iter().any(|x| x == el) {
+            return false;
+        }
+    }
+    return true;
+}
+
+fn single_element_in_cell(
+    problem: &SudokuCandidates,
+    row_idx: usize,
+    col_idx: usize,
+    el: &u8,
+) -> bool {
+    let cell_row_idx = row_idx / 3;
+    let cell_col_idx = col_idx / 3;
+
+    for row_idx_in_cell in (cell_row_idx * 3)..((cell_row_idx + 1) * 3) {
+        for col_idx_in_cell in (cell_col_idx * 3)..((cell_col_idx + 1) * 3) {
+            if row_idx == row_idx_in_cell && col_idx == col_idx_in_cell {
+                continue;
+            }
+            if problem.grid[row_idx_in_cell][col_idx_in_cell]
+                .iter()
+                .any(|x| x == el)
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 fn get_best_place_and_number_to_insert(problem: &SudokuCandidates) -> Option<InsertionCandidate> {
     // get place with least options, but more than one option
 
@@ -335,71 +394,13 @@ fn get_best_place_and_number_to_insert(problem: &SudokuCandidates) -> Option<Ins
             }
             for el in &problem.grid[row_idx][col_idx] {
                 // check if single possible el
-                // check col
-                let mut single_el: bool = true;
-                for row_inner_idx in 0..9 {
-                    if row_idx == row_inner_idx {
-                        continue;
-                    }
-                    if problem.grid[row_inner_idx][col_idx].iter().any(|x| x == el) {
-                        single_el = false;
-                        break;
-                    }
-                }
-                if single_el {
+                if single_element_in_col(problem, row_idx, col_idx, el)
+                    || single_element_in_row(problem, row_idx, col_idx, el)
+                    || single_element_in_cell(problem, row_idx, col_idx, el)
+                {
                     best_row = row_idx;
                     best_col = col_idx;
                     best_els = vec![*el];
-                    println!("single element in col: {} {}: {}", row_idx, col_idx, el);
-                    break 'single_el_search;
-                }
-
-                single_el = true;
-                // check row
-                for col_inner_idx in 0..9 {
-                    if col_idx == col_inner_idx {
-                        continue;
-                    }
-                    if problem.grid[row_idx][col_inner_idx].iter().any(|x| x == el) {
-                        single_el = false;
-                        break;
-                    }
-                }
-                if single_el {
-                    best_row = row_idx;
-                    best_col = col_idx;
-                    best_els = vec![*el];
-                    println!("single element in row: {} {}: {}", row_idx, col_idx, el);
-                    break 'single_el_search;
-                }
-
-                single_el = true;
-                // check cell
-                let cell_row_idx = row_idx / 3;
-                let cell_col_idx = col_idx / 3;
-
-                'outer_cell: for row_idx_in_cell in (cell_row_idx * 3)..((cell_row_idx + 1) * 3) {
-                    for col_idx_in_cell in (cell_col_idx * 3)..((cell_col_idx + 1) * 3) {
-                        if row_idx == row_idx_in_cell && col_idx == col_idx_in_cell {
-                            continue;
-                        }
-                        if problem.grid[row_idx_in_cell][col_idx_in_cell]
-                            .iter()
-                            .any(|x| x == el)
-                        {
-                            single_el = false;
-                            break 'outer_cell;
-                        }
-                    }
-                }
-                if single_el {
-                    best_row = row_idx;
-                    best_col = col_idx;
-                    best_els = vec![*el];
-                    println!(
-                        "single element in cell {} {}: {} {}: {}",
-                        cell_row_idx, cell_col_idx, row_idx, col_idx, el
-                    );
                     break 'single_el_search;
                 }
             }
