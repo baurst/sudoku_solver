@@ -235,6 +235,7 @@ fn solution_has_unresolvable_conflicts(solution: &SudokuCandidates) -> bool {
             }
         }
         if !has_unique_elements(elems) {
+            println!("Unresolvable conflict at row: {}", row_idx);
             return true;
         }
     }
@@ -248,6 +249,7 @@ fn solution_has_unresolvable_conflicts(solution: &SudokuCandidates) -> bool {
             }
         }
         if !has_unique_elements(elems) {
+            println!("Unresolvable conflict at col: {}", col_idx);
             return true;
         }
     }
@@ -266,6 +268,10 @@ fn solution_has_unresolvable_conflicts(solution: &SudokuCandidates) -> bool {
                 }
             }
             if !has_unique_elements(cell_elems) {
+                println!(
+                    "Unresolvable conflict at cell: meta_row_idx {} meta_col_idx {}",
+                    meta_row_idx, meta_col_idx
+                );
                 return true;
             }
         }
@@ -355,9 +361,11 @@ fn solve_sudoku(
     let recursion_depth = recursion_depth + 1;
 
     if problem_opt.is_none() {
+        println!("Received None: {}", recursion_depth);
         return None;
     } else {
-        let mut problem = problem_opt.unwrap();
+        let problem = problem_opt.unwrap();
+        println!("Depth: {}\n {}", recursion_depth, problem);
 
         if solution_is_correct(&problem) {
             // base case: only one possible number in each cell, solution found
@@ -366,9 +374,14 @@ fn solve_sudoku(
             return None;
         } else {
             let insertion_cand_opt = get_best_place_and_number_to_insert(&problem);
+            println!(
+                "Depth: {} Found insertion candidate {:?}",
+                recursion_depth, insertion_cand_opt
+            );
             if let Some(insertion_candidate) = insertion_cand_opt {
                 // try all possible solutions
                 let mut solution_candidates = vec![];
+
                 for el in insertion_candidate.candidates {
                     let mut problem_bkp = problem.clone();
 
@@ -384,11 +397,11 @@ fn solve_sudoku(
                         solution_candidates.push(prob_tmp);
                     }
                 }
-                println!(
-                    "Found {} candidates at depth {}",
-                    solution_candidates.len(),
-                    recursion_depth
-                );
+                // println!(
+                //     "Found {} candidates at depth {}",
+                //     solution_candidates.len(),
+                //     recursion_depth
+                // );
 
                 let solution = solution_candidates
                     .iter()
@@ -397,9 +410,13 @@ fn solve_sudoku(
 
                 match solution {
                     Some(x) => return solve_sudoku(Some(x), recursion_depth),
-                    _ => return None,
+                    _ => {
+                        println!("No solution found at depth {}", recursion_depth);
+                        return None;
+                    }
                 }
             } else {
+                println!("No candidates found at depth {}", recursion_depth);
                 return None;
             }
 
