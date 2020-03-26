@@ -6,7 +6,7 @@ extern crate clap;
 extern crate env_logger;
 
 use chrono::Local;
-use clap::{App, Arg, SubCommand};
+use clap::{App, Arg};
 use env_logger::Builder;
 use log::LevelFilter;
 use std::io::Write;
@@ -41,7 +41,7 @@ impl SudokuCandidates {
     }
 }
 
-fn check_conflict_for_element(problem: &SudokuCandidates, row_idx: usize, col_idx: usize) -> bool {
+fn _check_conflict_for_element(problem: &SudokuCandidates, row_idx: usize, col_idx: usize) -> bool {
     // check row
     for col_test_idx in 0..9 {
         if col_test_idx != col_idx
@@ -77,7 +77,7 @@ fn check_conflict_for_element(problem: &SudokuCandidates, row_idx: usize, col_id
             }
         }
     }
-    return true;
+    true
 }
 
 fn remove_from_neighbors(
@@ -183,7 +183,7 @@ fn remove_from_neighbors(
             }
         }
     }
-    return Some(problem);
+    Some(problem)
 }
 
 impl std::fmt::Display for SudokuCandidates {
@@ -315,7 +315,7 @@ fn solution_is_correct(solution: &SudokuCandidates) -> bool {
             return false;
         }
     }
-    return true;
+    true
 }
 
 #[derive(Clone, Debug)]
@@ -329,41 +329,47 @@ fn single_element_in_col(
     problem: &SudokuCandidates,
     row_idx: usize,
     col_idx: usize,
-    el: &u8,
+    el: u8,
 ) -> bool {
     for row_inner_idx in 0..9 {
         if row_idx == row_inner_idx {
             continue;
         }
-        if problem.grid[row_inner_idx][col_idx].iter().any(|x| x == el) {
+        if problem.grid[row_inner_idx][col_idx]
+            .iter()
+            .any(|x| x == &el)
+        {
             return false;
         }
     }
-    return true;
+    true
 }
 
 fn single_element_in_row(
     problem: &SudokuCandidates,
     row_idx: usize,
     col_idx: usize,
-    el: &u8,
+    el: u8,
 ) -> bool {
     for col_inner_idx in 0..9 {
         if col_idx == col_inner_idx {
             continue;
         }
-        if problem.grid[row_idx][col_inner_idx].iter().any(|x| x == el) {
+        if problem.grid[row_idx][col_inner_idx]
+            .iter()
+            .any(|x| x == &el)
+        {
             return false;
         }
     }
-    return true;
+    true
 }
 
 fn single_element_in_cell(
     problem: &SudokuCandidates,
     row_idx: usize,
     col_idx: usize,
-    el: &u8,
+    el: u8,
 ) -> bool {
     let cell_row_idx = row_idx / 3;
     let cell_col_idx = col_idx / 3;
@@ -375,13 +381,13 @@ fn single_element_in_cell(
             }
             if problem.grid[row_idx_in_cell][col_idx_in_cell]
                 .iter()
-                .any(|x| x == el)
+                .any(|x| x == &el)
             {
                 return false;
             }
         }
     }
-    return true;
+    true
 }
 
 fn get_best_place_and_number_to_insert(problem: &SudokuCandidates) -> Option<InsertionCandidate> {
@@ -402,9 +408,9 @@ fn get_best_place_and_number_to_insert(problem: &SudokuCandidates) -> Option<Ins
             }
             for el in &problem.grid[row_idx][col_idx] {
                 // check if single possible el
-                if single_element_in_col(problem, row_idx, col_idx, el)
-                    || single_element_in_row(problem, row_idx, col_idx, el)
-                    || single_element_in_cell(problem, row_idx, col_idx, el)
+                if single_element_in_col(problem, row_idx, col_idx, *el)
+                    || single_element_in_row(problem, row_idx, col_idx, *el)
+                    || single_element_in_cell(problem, row_idx, col_idx, *el)
                 {
                     best_row = row_idx;
                     best_col = col_idx;
@@ -452,24 +458,22 @@ fn solve_sudoku(
 ) -> Option<SudokuCandidates> {
     let recursion_depth = recursion_depth + 1;
 
-    if problem_opt.is_none() {
-        debug!("Received None: {}", recursion_depth);
-        return None;
-    } else {
-        let problem = problem_opt.unwrap();
+    if let Some(problem) = problem_opt {
         debug!("Depth: {}\n {}", recursion_depth, problem);
 
         if solution_is_correct(&problem) {
             // base case: only one possible number in each cell, solution found
-            return Some(problem);
+            Some(problem)
         } else if solution_has_unresolvable_conflicts(&problem) {
-            return None;
+            None
         } else {
             let insertion_cand_opt = get_best_place_and_number_to_insert(&problem);
+
             debug!(
                 "Depth: {} Found insertion candidate {:?}",
                 recursion_depth, insertion_cand_opt
             );
+
             if let Some(insertion_candidate) = insertion_cand_opt {
                 // try all possible solutions
                 let mut solution_candidates = vec![];
@@ -489,11 +493,12 @@ fn solve_sudoku(
                         solution_candidates.push(prob_tmp);
                     }
                 }
-                // debug!(
-                //     "Found {} candidates at depth {}",
-                //     solution_candidates.len(),
-                //     recursion_depth
-                // );
+
+                debug!(
+                    "Found {} candidates at depth {}",
+                    solution_candidates.len(),
+                    recursion_depth
+                );
 
                 let solution = solution_candidates
                     .iter()
@@ -501,46 +506,21 @@ fn solve_sudoku(
                     .find_map(|x| solve_sudoku(x, recursion_depth));
 
                 match solution {
-                    Some(x) => return solve_sudoku(Some(x), recursion_depth),
+                    Some(x) => solve_sudoku(Some(x), recursion_depth),
                     _ => {
                         debug!("No solution found at depth {}", recursion_depth);
-                        return None;
+                        None
                     }
                 }
             } else {
                 debug!("No candidates found at depth {}", recursion_depth);
-                return None;
+                None
             }
-
-            // if prob_tmp.is_some() {
-            //     problem = prob_tmp.unwrap();
-            //     return solve_sudoku(problem, recursion_depth);
-            // } else {
-            //     return None;
-            // }
-
-            // // if update_worked {
-            // //     debug!(
-            // //         "Update worked: row_idx {}, col_idx {}, el {}\n{}",
-            // //         row_idx, col_idx, el, problem
-            // //     );
-            // return solve_sudoku(Some(problem), recursion_depth);
-            // } else {
-            //     let dupl_idx = problem_bkp.grid[row_idx][col_idx]
-            //         .iter()
-            //         .position(|x| *x == el);
-            //     if let Some(x) = dupl_idx {
-            //         problem_bkp.grid[row_idx][col_idx].remove(x);
-            //         assert!(!problem_bkp.grid[row_idx][col_idx].is_empty());
-            //         debug!(
-            //             "Recursion depth {}: Num options left: {}",
-            //             problem_bkp.grid[row_idx][col_idx].len(),
-            //             recursion_depth
-            //         );
-            //     }
         }
+    } else {
+        debug!("Received None: {}", recursion_depth);
+        None
     }
-    return None;
 }
 
 fn main() {
@@ -558,7 +538,7 @@ fn main() {
 
     let loglevel = match matches.occurrences_of("v") {
         0 => LevelFilter::Info,
-        1 | _ => LevelFilter::Debug,
+        _ => LevelFilter::Debug,
     };
 
     Builder::new()
@@ -579,7 +559,7 @@ fn main() {
     for prob in probs {
         let sudoku_problem = parse_sudoku(prob);
 
-        info!("Starting!");
+        info!("Starting with problem: ");
         info!("{}", sudoku_problem);
         let solution = solve_sudoku(Some(sudoku_problem), 0);
 
