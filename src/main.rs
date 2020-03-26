@@ -27,14 +27,6 @@ impl SudokuCandidates {
             problem = remove_from_neighbors(&problem, row_idx, col_idx, *item).unwrap();
             // println!("{}", problem);
         }
-        // for row_idx in 0..9 {
-        //     for col_idx in 0..9{
-        //         if problem.grid[row_idx][col_idx].len() == 1{
-        //             let el = problem.grid[row_idx][col_idx][0];
-        //             remove_from_neighbors(&mut problem, row_idx, col_idx, el);
-        //         }
-        //     }
-        // }
 
         problem
     }
@@ -110,10 +102,10 @@ fn remove_from_neighbors(
                     col_idx,
                     problem.grid[el_row_idx][col_idx][0],
                 );
-                if new_prob_opt.is_none() {
-                    return None;
+                if let Some(new_prob) = new_prob_opt {
+                    problem = new_prob;
                 } else {
-                    problem = new_prob_opt.unwrap();
+                    return None;
                 }
                 //return check_conflict_for_element(problem, el_row_idx, col_idx);
             }
@@ -139,10 +131,10 @@ fn remove_from_neighbors(
                     el_col_idx,
                     problem.grid[row_idx][el_col_idx][0],
                 );
-                if new_prob_opt.is_none() {
-                    return None;
+                if let Some(new_prob) = new_prob_opt {
+                    problem = new_prob;
                 } else {
-                    problem = new_prob_opt.unwrap();
+                    return None;
                 }
                 //return check_conflict_for_element(problem, row_idx, el_col_idx);
             }
@@ -173,10 +165,10 @@ fn remove_from_neighbors(
                         col_idx,
                         problem.grid[row_idx][col_idx][0],
                     );
-                    if new_prob_opt.is_none() {
-                        return None;
+                    if let Some(new_prob) = new_prob_opt {
+                        problem = new_prob;
                     } else {
-                        problem = new_prob_opt.unwrap();
+                        return None;
                     }
                     //return check_conflict_for_element(problem, row_idx, col_idx);
                 }
@@ -283,6 +275,7 @@ fn solution_has_unresolvable_conflicts(solution: &SudokuCandidates) -> bool {
 }
 
 fn solution_is_correct(solution: &SudokuCandidates) -> bool {
+    // only one element per cell
     for row in &solution.grid {
         for col in row {
             if col.len() != 1 {
@@ -356,14 +349,15 @@ fn get_best_place_and_number_to_insert(problem: &SudokuCandidates) -> Option<Ins
 }
 
 fn solve_sudoku(
-    problem: Option<SudokuCandidates>,
+    problem_opt: Option<SudokuCandidates>,
     recursion_depth: usize,
 ) -> Option<SudokuCandidates> {
     let recursion_depth = recursion_depth + 1;
-    if problem.is_none() {
+
+    if problem_opt.is_none() {
         return None;
     } else {
-        let mut problem = problem.unwrap();
+        let mut problem = problem_opt.unwrap();
 
         if solution_is_correct(&problem) {
             // base case: only one possible number in each cell, solution found
@@ -372,49 +366,58 @@ fn solve_sudoku(
             return None;
         } else {
             let insertion_cand_opt = get_best_place_and_number_to_insert(&problem);
-            if insertion_cand_opt.is_none() {
-                return None;
-            } else {
-                let insertion_cand = insertion_cand_opt.unwrap();
-                for el in insertion_cand.candidates {
-                    // let mut problem_bkp = problem.clone();
-
-                    problem.grid[insertion_cand.row_idx][insertion_cand.col_idx] = vec![el];
+            if let Some(insertion_candidate) = insertion_cand_opt {
+                // try all possible solutions
+                let mut solution_candidates = vec![];
+                for el in insertion_candidate.candidates {
+                    problem.grid[insertion_candidate.row_idx][insertion_candidate.col_idx] =
+                        vec![el];
                     let prob_tmp = remove_from_neighbors(
                         &problem,
-                        insertion_cand.row_idx,
-                        insertion_cand.col_idx,
+                        insertion_candidate.row_idx,
+                        insertion_candidate.col_idx,
                         el,
                     );
-                    return solve_sudoku(prob_tmp, recursion_depth);
-                    // if prob_tmp.is_some() {
-                    //     problem = prob_tmp.unwrap();
-                    //     return solve_sudoku(problem, recursion_depth);
-                    // } else {
-                    //     return None;
-                    // }
 
-                    // // if update_worked {
-                    // //     println!(
-                    // //         "Update worked: row_idx {}, col_idx {}, el {}\n{}",
-                    // //         row_idx, col_idx, el, problem
-                    // //     );
-                    // return solve_sudoku(Some(problem), recursion_depth);
-                    // } else {
-                    //     let dupl_idx = problem_bkp.grid[row_idx][col_idx]
-                    //         .iter()
-                    //         .position(|x| *x == el);
-                    //     if let Some(x) = dupl_idx {
-                    //         problem_bkp.grid[row_idx][col_idx].remove(x);
-                    //         assert!(!problem_bkp.grid[row_idx][col_idx].is_empty());
-                    //         println!(
-                    //             "Recursion depth {}: Num options left: {}",
-                    //             problem_bkp.grid[row_idx][col_idx].len(),
-                    //             recursion_depth
-                    //         );
-                    //     }
+                    solution_candidates.push(prob_tmp);
                 }
+                let solution = solution_candidates
+                    .iter()
+                    .cloned()
+                    .find_map(|x| solve_sudoku(x, recursion_depth))
+                    .expect("There must be a solution");
+
+                return solve_sudoku(Some(solution), recursion_depth);
+            } else {
+                return None;
             }
+
+            // if prob_tmp.is_some() {
+            //     problem = prob_tmp.unwrap();
+            //     return solve_sudoku(problem, recursion_depth);
+            // } else {
+            //     return None;
+            // }
+
+            // // if update_worked {
+            // //     println!(
+            // //         "Update worked: row_idx {}, col_idx {}, el {}\n{}",
+            // //         row_idx, col_idx, el, problem
+            // //     );
+            // return solve_sudoku(Some(problem), recursion_depth);
+            // } else {
+            //     let dupl_idx = problem_bkp.grid[row_idx][col_idx]
+            //         .iter()
+            //         .position(|x| *x == el);
+            //     if let Some(x) = dupl_idx {
+            //         problem_bkp.grid[row_idx][col_idx].remove(x);
+            //         assert!(!problem_bkp.grid[row_idx][col_idx].is_empty());
+            //         println!(
+            //             "Recursion depth {}: Num options left: {}",
+            //             problem_bkp.grid[row_idx][col_idx].len(),
+            //             recursion_depth
+            //         );
+            //     }
         }
     }
     return None;
@@ -424,20 +427,17 @@ fn main() {
     let probs = vec!["assets/problem_easy.txt", "assets/problem_hard.txt"];
 
     for prob in probs {
-        let mut sudoku_problem = parse_sudoku(prob);
+        let sudoku_problem = parse_sudoku(prob);
 
         println!("Starting!");
         println!("{}", sudoku_problem);
         let solution = solve_sudoku(Some(sudoku_problem), 0);
-        if solution.is_none() {
-            println!("Problem unsolvable!");
+
+        if let Some(solved) = solution {
+            println!("Problem solved:");
+            println!("{}", solved);
         } else {
-            let solution = solution.unwrap();
-            println!("{}", solution);
+            println!("Problem unsolvable!");
         }
-        // println!(
-        //     "Solution is valid: {}",
-        //     solution_is_correct(&solution.unwrap())
-        // );
     }
 }
