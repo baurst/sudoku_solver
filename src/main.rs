@@ -370,24 +370,35 @@ fn solve_sudoku(
                 // try all possible solutions
                 let mut solution_candidates = vec![];
                 for el in insertion_candidate.candidates {
-                    problem.grid[insertion_candidate.row_idx][insertion_candidate.col_idx] =
+                    let mut problem_bkp = problem.clone();
+
+                    problem_bkp.grid[insertion_candidate.row_idx][insertion_candidate.col_idx] =
                         vec![el];
                     let prob_tmp = remove_from_neighbors(
-                        &problem,
+                        &problem_bkp,
                         insertion_candidate.row_idx,
                         insertion_candidate.col_idx,
                         el,
                     );
-
-                    solution_candidates.push(prob_tmp);
+                    if prob_tmp.is_some() {
+                        solution_candidates.push(prob_tmp);
+                    }
                 }
+                println!(
+                    "Found {} candidates at depth {}",
+                    solution_candidates.len(),
+                    recursion_depth
+                );
+
                 let solution = solution_candidates
                     .iter()
                     .cloned()
-                    .find_map(|x| solve_sudoku(x, recursion_depth))
-                    .expect("There must be a solution");
+                    .find_map(|x| solve_sudoku(x, recursion_depth));
 
-                return solve_sudoku(Some(solution), recursion_depth);
+                match solution {
+                    Some(x) => return solve_sudoku(Some(x), recursion_depth),
+                    _ => return None,
+                }
             } else {
                 return None;
             }
