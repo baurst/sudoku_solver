@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "target/debug/sudoku_solver",
-            "args": [],
+            "args": ["assets/problem_hard.txt", "-v"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

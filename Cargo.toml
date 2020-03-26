@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 clap = "2.33.0"
-rand = "0.7"
 log = "0.4.8"
 chrono = "0.4"
 env_logger = "0.7.1"
+regex = "1"

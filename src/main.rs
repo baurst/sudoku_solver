@@ -1,14 +1,18 @@
-//use rand::seq::SliceRandom;
 #[macro_use]
 extern crate log;
 extern crate chrono;
 extern crate clap;
 extern crate env_logger;
+extern crate regex;
 
 use chrono::Local;
 use clap::{App, Arg};
 use env_logger::Builder;
 use log::LevelFilter;
+use regex::Regex;
+use std::collections::HashSet;
+use std::fs;
+use std::hash::Hash;
 use std::io::Write;
 
 #[derive(Clone, Debug)]
@@ -39,6 +43,27 @@ impl SudokuCandidates {
 
         problem
     }
+}
+
+fn parse_sudoku(filepath: &str) -> Vec<SudokuCandidates> {
+    let contents = fs::read_to_string(filepath).expect("Something went wrong reading the file");
+    let lines = contents.lines();
+
+    let mut candidates = vec![];
+    for line in lines {
+        // replace any non numeric characters in the line with 0
+        let re = Regex::new(r"[^0-9]").unwrap();
+        let result = re.replace_all(line, "0");
+        let problem_raw: Vec<u8> = result
+            .split("")
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty())
+            .map(|s| s.parse().unwrap())
+            .collect();
+        let cand = SudokuCandidates::from_vec(problem_raw);
+        candidates.push(cand);
+    }
+    candidates
 }
 
 fn _check_conflict_for_element(problem: &SudokuCandidates, row_idx: usize, col_idx: usize) -> bool {
@@ -204,25 +229,6 @@ impl std::fmt::Display for SudokuCandidates {
         write!(f, "\n{}", some_str)
     }
 }
-
-fn parse_sudoku(filepath: &str) -> SudokuCandidates {
-    use std::fs;
-    let contents = fs::read_to_string(filepath).expect("Something went wrong reading the file");
-    let mut lines = contents.lines();
-    let problem_raw: Vec<u8> = lines
-        .next()
-        .unwrap()
-        .split("")
-        .map(|s| s.trim())
-        .filter(|s| !s.is_empty())
-        .map(|s| s.parse().unwrap())
-        .collect();
-    SudokuCandidates::from_vec(problem_raw)
-}
-
-use std::collections::HashSet;
-
-use std::hash::Hash;
 
 fn has_unique_elements<T>(iter: T) -> bool
 where
@@ -529,6 +535,12 @@ fn main() {
         .author("Stefan B. <stefan.a.baur@gmail.com>")
         .about("Fast Sudoku solver.")
         .arg(
+            Arg::with_name("INPUT")
+                .help("Sudoku input file to use. One problem per line.")
+                .required(true)
+                .index(1),
+        )
+        .arg(
             Arg::with_name("v")
                 .short("v")
                 .multiple(true)
@@ -545,27 +557,25 @@ fn main() {
         .format(|buf, record| {
             writeln!(
                 buf,
-                "{} [{}] - {}",
-                Local::now().format("%Y-%m-%d-%H:%M:%S"),
+                "[{}] {}: {}",
                 record.level(),
+                Local::now().format("%Y-%m-%d-%H:%M:%S"),
                 record.args()
             )
         })
         .filter(None, loglevel)
         .init();
 
-    let probs = vec!["assets/problem_easy.txt", "assets/problem_hard.txt"];
+    let prob = matches.value_of("INPUT").unwrap();
 
-    for prob in probs {
-        let sudoku_problem = parse_sudoku(prob);
+    let sudoku_problems = parse_sudoku(prob);
 
-        info!("Starting with problem: ");
-        info!("{}", sudoku_problem);
-        let solution = solve_sudoku(Some(sudoku_problem), 0);
+    for prob in sudoku_problems {
+        info!("Starting with problem: {}", prob);
+        let solution = solve_sudoku(Some(prob), 0);
 
         if let Some(solved) = solution {
-            info!("Problem solved:");
-            info!("{}", solved);
+            info!("Problem solved:{}", solved);
         } else {
             warn!("Problem unsolvable!");
         }
