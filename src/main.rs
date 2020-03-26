@@ -325,21 +325,104 @@ fn get_best_place_and_number_to_insert(problem: &SudokuCandidates) -> Option<Ins
     let mut best_els = vec![];
     let mut shortest_len = 100;
 
-    'outer: for row_idx in 0..9 {
+    // check for single option in row/col/cell
+    // elemnt mindestens länge 2
+    'single_el_search: for row_idx in 0..9 {
         for col_idx in 0..9 {
             let current_prob_len = problem.grid[row_idx][col_idx].len();
             if current_prob_len == 1 {
                 continue;
-            } else if current_prob_len == 2 {
-                best_row = row_idx;
-                best_col = col_idx;
-                best_els = problem.grid[row_idx][col_idx].clone();
-                break 'outer;
-            } else if current_prob_len > 2 && current_prob_len < shortest_len {
-                best_row = row_idx;
-                best_col = col_idx;
-                best_els = problem.grid[row_idx][col_idx].clone();
-                shortest_len = current_prob_len;
+            }
+            for el in &problem.grid[row_idx][col_idx] {
+                // check if single possible el
+                // check col
+                let mut single_el: bool = true;
+                for row_inner_idx in 0..9 {
+                    if row_idx == row_inner_idx {
+                        continue;
+                    }
+                    if problem.grid[row_inner_idx][col_idx].iter().any(|x| x == el) {
+                        single_el = false;
+                        break;
+                    }
+                }
+                if single_el {
+                    best_row = row_idx;
+                    best_col = col_idx;
+                    best_els = vec![*el];
+                    println!("single element in col: {} {}: {}", row_idx, col_idx, el);
+                    break 'single_el_search;
+                }
+
+                single_el = true;
+                // check row
+                for col_inner_idx in 0..9 {
+                    if col_idx == col_inner_idx {
+                        continue;
+                    }
+                    if problem.grid[row_idx][col_inner_idx].iter().any(|x| x == el) {
+                        single_el = false;
+                        break;
+                    }
+                }
+                if single_el {
+                    best_row = row_idx;
+                    best_col = col_idx;
+                    best_els = vec![*el];
+                    println!("single element in row: {} {}: {}", row_idx, col_idx, el);
+                    break 'single_el_search;
+                }
+
+                single_el = true;
+                // check cell
+                let cell_row_idx = row_idx / 3;
+                let cell_col_idx = col_idx / 3;
+
+                'outer_cell: for row_idx_in_cell in (cell_row_idx * 3)..((cell_row_idx + 1) * 3) {
+                    for col_idx_in_cell in (cell_col_idx * 3)..((cell_col_idx + 1) * 3) {
+                        if row_idx == row_idx_in_cell && col_idx == col_idx_in_cell {
+                            continue;
+                        }
+                        if problem.grid[row_idx_in_cell][col_idx_in_cell]
+                            .iter()
+                            .any(|x| x == el)
+                        {
+                            single_el = false;
+                            break 'outer_cell;
+                        }
+                    }
+                }
+                if single_el {
+                    best_row = row_idx;
+                    best_col = col_idx;
+                    best_els = vec![*el];
+                    println!(
+                        "single element in cell {} {}: {} {}: {}",
+                        cell_row_idx, cell_col_idx, row_idx, col_idx, el
+                    );
+                    break 'single_el_search;
+                }
+            }
+        }
+    }
+
+    if best_els.is_empty() {
+        'outer: for row_idx in 0..9 {
+            for col_idx in 0..9 {
+                let current_prob_len = problem.grid[row_idx][col_idx].len();
+                if current_prob_len == 1 {
+                    continue;
+                } else if current_prob_len == 2 {
+                    best_row = row_idx;
+                    best_col = col_idx;
+                    best_els = problem.grid[row_idx][col_idx].clone();
+                    break 'outer;
+                } else if current_prob_len > 2 && current_prob_len < shortest_len {
+                    best_row = row_idx;
+                    best_col = col_idx;
+                    best_els = problem.grid[row_idx][col_idx].clone();
+                    shortest_len = current_prob_len;
+                }
             }
         }
     }
