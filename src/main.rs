@@ -54,8 +54,9 @@ fn parse_sudokus(filepath: &str) -> Vec<SudokuCandidates> {
     let mut candidates = vec![];
     for line in lines {
         // replace any non numeric characters in the line with 0
-        let re = Regex::new(r"[^0-9]").unwrap();
-        let result = re.replace_all(line, "0");
+        let non_numeric_chars = Regex::new(r"[^0-9]").unwrap();
+        let line_no_commas = line.replace(",", "");
+        let result = non_numeric_chars.replace_all(&line_no_commas, "0");
         let problem_raw: Vec<u8> = result
             .split("")
             .map(|s| s.trim())
@@ -527,7 +528,7 @@ fn solve_sudoku(
 fn main() {
     let matches = App::new("Sudoku Solver")
         .version("0.1")
-        .author("Stefan B. <stefan.a.baur@gmail.com>")
+        .author("baurst")
         .about("Fast Sudoku solver.")
         .arg(
             Arg::with_name("INPUT")
