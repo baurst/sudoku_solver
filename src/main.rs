@@ -14,6 +14,7 @@ use std::collections::HashSet;
 use std::fs;
 use std::hash::Hash;
 use std::io::Write;
+use std::time::Instant;
 
 #[derive(Clone, Debug)]
 struct SudokuCandidates {
@@ -23,6 +24,7 @@ struct SudokuCandidates {
 impl SudokuCandidates {
     fn initial() -> SudokuCandidates {
         SudokuCandidates {
+            // 9 x 9 grid of u8s
             grid: vec![vec![(1..10).collect::<Vec<u8>>(); 9]; 9],
         }
     }
@@ -45,7 +47,7 @@ impl SudokuCandidates {
     }
 }
 
-fn parse_sudoku(filepath: &str) -> Vec<SudokuCandidates> {
+fn parse_sudokus(filepath: &str) -> Vec<SudokuCandidates> {
     let contents = fs::read_to_string(filepath).expect("Something went wrong reading the file");
     let lines = contents.lines();
 
@@ -111,14 +113,9 @@ fn remove_from_neighbors(
     el_col_idx: usize,
     el: u8,
 ) -> Option<SudokuCandidates> {
-    //debug!("removing {} {} {}", el_row_idx, el_col_idx, el );
-    // clean row
+    debug!("removing {} {} {}", el_row_idx, el_col_idx, el);
     let mut problem = problem.clone();
     for col_idx in 0..9 {
-        // if col_idx == 6 && el_row_idx == 8 && el == 2{
-        //     debug!("{}", problem);
-        //     debug!("{:?}", problem.grid[el_row_idx][col_idx]);
-        // }
         if col_idx == el_col_idx {
             continue;
         }
@@ -141,7 +138,6 @@ fn remove_from_neighbors(
                 } else {
                     return None;
                 }
-                //return check_conflict_for_element(problem, el_row_idx, col_idx);
             }
         }
     }
@@ -203,7 +199,6 @@ fn remove_from_neighbors(
                     } else {
                         return None;
                     }
-                    //return check_conflict_for_element(problem, row_idx, col_idx);
                 }
             }
         }
@@ -223,7 +218,7 @@ impl std::fmt::Display for SudokuCandidates {
                 let sym = format!("{: >9},", cand_str);
                 some_str.push_str(&sym);
             }
-            some_str.push_str(&"\n".to_string());
+            some_str.push_str("\n");
         }
 
         write!(f, "\n{}", some_str)
@@ -331,7 +326,7 @@ struct InsertionCandidate {
     candidates: Vec<u8>,
 }
 
-fn single_element_in_col(
+fn is_single_element_in_col(
     problem: &SudokuCandidates,
     row_idx: usize,
     col_idx: usize,
@@ -351,7 +346,7 @@ fn single_element_in_col(
     true
 }
 
-fn single_element_in_row(
+fn is_single_element_in_row(
     problem: &SudokuCandidates,
     row_idx: usize,
     col_idx: usize,
@@ -371,7 +366,7 @@ fn single_element_in_row(
     true
 }
 
-fn single_element_in_cell(
+fn is_single_element_in_cell(
     problem: &SudokuCandidates,
     row_idx: usize,
     col_idx: usize,
@@ -414,9 +409,9 @@ fn get_best_place_and_number_to_insert(problem: &SudokuCandidates) -> Option<Ins
             }
             for el in &problem.grid[row_idx][col_idx] {
                 // check if single possible el
-                if single_element_in_col(problem, row_idx, col_idx, *el)
-                    || single_element_in_row(problem, row_idx, col_idx, *el)
-                    || single_element_in_cell(problem, row_idx, col_idx, *el)
+                if is_single_element_in_col(problem, row_idx, col_idx, *el)
+                    || is_single_element_in_row(problem, row_idx, col_idx, *el)
+                    || is_single_element_in_cell(problem, row_idx, col_idx, *el)
                 {
                     best_row = row_idx;
                     best_col = col_idx;
@@ -568,7 +563,11 @@ fn main() {
 
     let prob = matches.value_of("INPUT").unwrap();
 
-    let sudoku_problems = parse_sudoku(prob);
+    let sudoku_problems = parse_sudokus(prob);
+
+    let num_sudokus = sudoku_problems.len();
+    let mut num_unsolvable_sudokus = 0;
+    let time_start = Instant::now();
 
     for prob in sudoku_problems {
         info!("Starting with problem: {}", prob);
@@ -578,6 +577,23 @@ fn main() {
             info!("Problem solved:{}", solved);
         } else {
             warn!("Problem unsolvable!");
+            num_unsolvable_sudokus += 1;
         }
+    }
+
+    let duration = Instant::now() - time_start;
+
+    info!(
+        "{:?} for {} sudokus, on average {:?} per problem.",
+        duration,
+        num_sudokus,
+        duration / num_sudokus as u32
+    );
+
+    if num_unsolvable_sudokus > 0 {
+        warn!(
+            "Failed to solve {} out of {} sudokus.",
+            num_unsolvable_sudokus, num_sudokus,
+        );
     }
 }
