@@ -40,13 +40,97 @@ impl SudokuCandidates {
             let col_idx = i % 9;
 
             problem.grid[row_idx][col_idx] = vec![*item];
-            problem = remove_from_neighbors(&problem, row_idx, col_idx, *item).unwrap();
+            problem = remove_duplicates(&problem, row_idx, col_idx, *item).unwrap();
         }
 
         problem
     }
+
+    fn get_duplicates_in_column(
+        &self,
+        element: u8,
+        el_row_idx: usize,
+        el_col_idx: usize,
+    ) -> HashSet<(usize, usize)> {
+        let mut duplicates: HashSet<(usize, usize)> = HashSet::new();
+        // find duplicates in column
+        for row_idx in 0..9 {
+            if row_idx == el_row_idx {
+                continue;
+            }
+            if self.grid[row_idx][el_col_idx].iter().any(|x| *x == element) {
+                duplicates.insert((row_idx, el_col_idx));
+            }
+        }
+        duplicates
+    }
+
+    fn get_duplicates_in_row(
+        &self,
+        element: u8,
+        el_row_idx: usize,
+        el_col_idx: usize,
+    ) -> HashSet<(usize, usize)> {
+        let mut duplicates: HashSet<(usize, usize)> = HashSet::new();
+        // find duplicates in row
+        for col_idx in 0..9 {
+            if col_idx == el_col_idx {
+                continue;
+            }
+            if self.grid[el_row_idx][col_idx].iter().any(|x| *x == element) {
+                duplicates.insert((el_row_idx, col_idx));
+            }
+        }
+        duplicates
+    }
+
+    fn get_duplicates_in_cell(
+        &self,
+        element: u8,
+        el_row_idx: usize,
+        el_col_idx: usize,
+    ) -> HashSet<(usize, usize)> {
+        let mut duplicates: HashSet<(usize, usize)> = HashSet::new();
+        // find duplicates in cell
+        let cell_row_idx = el_row_idx / 3;
+        let cell_col_idx = el_col_idx / 3;
+
+        for row_idx_in_cell in 0..3 {
+            for col_idx_in_cell in 0..3 {
+                let row_idx = cell_row_idx * 3 + row_idx_in_cell;
+                let col_idx = cell_col_idx * 3 + col_idx_in_cell;
+                if row_idx == el_row_idx && col_idx == el_col_idx {
+                    continue;
+                }
+                if self.grid[row_idx][col_idx].iter().any(|x| *x == element) {
+                    duplicates.insert((row_idx, col_idx));
+                }
+            }
+        }
+        duplicates
+    }
+
+    fn get_duplicates(
+        &self,
+        element: u8,
+        el_row_idx: usize,
+        el_col_idx: usize,
+    ) -> HashSet<(usize, usize)> {
+        let mut duplicates: HashSet<(usize, usize)> = HashSet::new();
+
+        let row_duplicates = self.get_duplicates_in_row(element, el_row_idx, el_col_idx);
+        duplicates.extend(row_duplicates);
+
+        let col_duplicates = self.get_duplicates_in_column(element, el_row_idx, el_col_idx);
+        duplicates.extend(&col_duplicates);
+
+        let cell_duplicates = self.get_duplicates_in_cell(element, el_row_idx, el_col_idx);
+        duplicates.extend(&cell_duplicates);
+
+        duplicates
+    }
+
     fn is_correct(&self) -> bool {
-        // only one element per cell
         for row in &self.grid {
             for col in row {
                 if col.len() != 1 {
@@ -72,7 +156,7 @@ impl SudokuCandidates {
                 return false;
             }
         }
-        true
+        return !self.has_unresolvable_conflicts();
     }
 
     fn has_unresolvable_conflicts(&self) -> bool {
@@ -234,47 +318,7 @@ fn parse_sudokus(filepath: &str) -> Vec<SudokuCandidates> {
     candidates
 }
 
-/*
-fn _check_conflict_for_element(problem: &SudokuCandidates, row_idx: usize, col_idx: usize) -> bool {
-    // check row
-    for col_test_idx in 0..9 {
-        if col_test_idx != col_idx
-            && problem.grid[row_idx][col_test_idx] == problem.grid[row_idx][col_idx]
-        {
-            return false;
-        }
-    }
-
-    // check col
-    for row_test_idx in 0..9 {
-        if row_idx != row_test_idx
-            && problem.grid[row_test_idx][col_idx] == problem.grid[row_idx][col_idx]
-        {
-            return false;
-        }
-    }
-
-    // check cell
-    let cell_row_idx = row_idx / 3;
-    let cell_col_idx = col_idx / 3;
-
-    for row_idx_in_cell in 0..3 {
-        for col_idx_in_cell in 0..3 {
-            let row_test_idx = cell_row_idx * 3 + row_idx_in_cell;
-            let col_test_idx = cell_col_idx * 3 + col_idx_in_cell;
-            if row_idx == row_test_idx || col_idx == col_test_idx {
-                // we have already elminated the row and colum here above
-                continue;
-            }
-            if problem.grid[row_test_idx][col_test_idx] == problem.grid[row_idx][col_idx] {
-                return false;
-            }
-        }
-    }
-    true
-}
-*/
-fn remove_from_neighbors(
+fn remove_duplicates(
     problem: &SudokuCandidates,
     el_row_idx: usize,
     el_col_idx: usize,
@@ -282,90 +326,27 @@ fn remove_from_neighbors(
 ) -> Option<SudokuCandidates> {
     debug!("removing {} {} {}", el_row_idx, el_col_idx, el);
     let mut problem = problem.clone();
-    for col_idx in 0..9 {
-        if col_idx == el_col_idx {
-            continue;
-        }
-        let dupl_idx = problem.grid[el_row_idx][col_idx]
+    let duplicates = problem.get_duplicates(el, el_row_idx, el_col_idx);
+    for (dup_row_idx, dup_col_idx) in duplicates {
+        let dupl_idx = problem.grid[dup_row_idx][dup_col_idx]
             .iter()
             .position(|x| *x == el);
         if let Some(x) = dupl_idx {
-            problem.grid[el_row_idx][col_idx].remove(x);
-            if problem.grid[el_row_idx][col_idx].is_empty() {
-                return None; // conflict detected
-            } else if problem.grid[el_row_idx][col_idx].len() == 1 {
-                let new_prob_opt = remove_from_neighbors(
+            problem.grid[dup_row_idx][dup_col_idx].remove(x);
+            if problem.grid[dup_row_idx][dup_col_idx].is_empty() {
+                // conflict detected
+                return None;
+            } else if problem.grid[dup_row_idx][dup_col_idx].len() == 1 {
+                let new_prob_opt = remove_duplicates(
                     &problem,
-                    el_row_idx,
-                    col_idx,
-                    problem.grid[el_row_idx][col_idx][0],
+                    dup_row_idx,
+                    dup_col_idx,
+                    problem.grid[dup_row_idx][dup_col_idx][0],
                 );
                 if let Some(new_prob) = new_prob_opt {
                     problem = new_prob;
                 } else {
                     return None;
-                }
-            }
-        }
-    }
-
-    // clean col
-    for row_idx in 0..9 {
-        if row_idx == el_row_idx {
-            continue;
-        }
-        let dupl_idx = problem.grid[row_idx][el_col_idx]
-            .iter()
-            .position(|x| *x == el);
-        if let Some(x) = dupl_idx {
-            problem.grid[row_idx][el_col_idx].remove(x);
-            if problem.grid[row_idx][el_col_idx].is_empty() {
-                return None; // conflict detected
-            } else if problem.grid[row_idx][el_col_idx].len() == 1 {
-                let new_prob_opt = remove_from_neighbors(
-                    &problem,
-                    row_idx,
-                    el_col_idx,
-                    problem.grid[row_idx][el_col_idx][0],
-                );
-                if let Some(new_prob) = new_prob_opt {
-                    problem = new_prob;
-                } else {
-                    return None;
-                }
-            }
-        }
-    }
-
-    // clean cell
-    let cell_row_idx = el_row_idx / 3;
-    let cell_col_idx = el_col_idx / 3;
-
-    for row_idx_in_cell in 0..3 {
-        for col_idx_in_cell in 0..3 {
-            let row_idx = cell_row_idx * 3 + row_idx_in_cell;
-            let col_idx = cell_col_idx * 3 + col_idx_in_cell;
-            if row_idx == el_row_idx || col_idx == el_col_idx {
-                // we have already elminated the row and colum here above
-                continue;
-            }
-            let dupl_idx = problem.grid[row_idx][col_idx].iter().position(|x| *x == el);
-            if let Some(x) = dupl_idx {
-                problem.grid[row_idx][col_idx].remove(x);
-                if problem.grid[row_idx][col_idx].is_empty() {
-                    return None; // conflict detected
-                } else if problem.grid[row_idx][col_idx].len() == 1 {
-                    let new_prob_opt = remove_from_neighbors(
-                        &problem,
-                        row_idx,
-                        col_idx,
-                        problem.grid[row_idx][col_idx][0],
-                    );
-                    if let Some(new_prob) = new_prob_opt {
-                        problem = new_prob;
-                    } else {
-                        return None;
-                    }
                 }
             }
         }
@@ -438,12 +419,14 @@ fn is_single_element_in_cell(
     let cell_row_idx = row_idx / 3;
     let cell_col_idx = col_idx / 3;
 
-    for row_idx_in_cell in (cell_row_idx * 3)..((cell_row_idx + 1) * 3) {
-        for col_idx_in_cell in (cell_col_idx * 3)..((cell_col_idx + 1) * 3) {
-            if row_idx == row_idx_in_cell && col_idx == col_idx_in_cell {
+    for row_idx_within_cell in 0..3 {
+        for col_idx_within_cell in 0..3 {
+            let row_idx_abs = 3 * cell_row_idx + row_idx_within_cell;
+            let col_idx_abs = 3 * cell_col_idx + col_idx_within_cell;
+            if row_idx_abs == row_idx && col_idx_abs == col_idx {
                 continue;
             }
-            if problem.grid[row_idx_in_cell][col_idx_in_cell]
+            if problem.grid[row_idx_abs][col_idx_abs]
                 .iter()
                 .any(|x| x == &el)
             {
@@ -485,7 +468,7 @@ fn solve_sudoku(
 
                     problem_bkp.grid[insertion_candidate.row_idx][insertion_candidate.col_idx] =
                         vec![el];
-                    let prob_tmp = remove_from_neighbors(
+                    let prob_tmp = remove_duplicates(
                         &problem_bkp,
                         insertion_candidate.row_idx,
                         insertion_candidate.col_idx,
