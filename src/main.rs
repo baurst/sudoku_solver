@@ -45,6 +45,171 @@ impl SudokuCandidates {
 
         problem
     }
+    fn is_correct(&self) -> bool {
+        // only one element per cell
+        for row in &self.grid {
+            for col in row {
+                if col.len() != 1 {
+                    return false;
+                }
+            }
+        }
+        for col_idx in 0..9 {
+            let mut sum_col_elems = 0;
+            for row_idx in 0..9 {
+                sum_col_elems += self.grid[row_idx][col_idx][0];
+            }
+            if sum_col_elems != 9 * 10 / 2 {
+                return false;
+            }
+        }
+        for row_idx in 0..9 {
+            let mut sum_row_elems = 0;
+            for col_idx in 0..9 {
+                sum_row_elems += self.grid[row_idx][col_idx][0];
+            }
+            if sum_row_elems != 9 * 10 / 2 {
+                return false;
+            }
+        }
+        true
+    }
+
+    fn has_unresolvable_conflicts(&self) -> bool {
+        // rows okay
+        for row_idx in 0..9 {
+            let mut elems = vec![];
+            for col_idx in 0..9 {
+                if self.grid[row_idx][col_idx].len() == 1 {
+                    elems.push(self.grid[row_idx][col_idx][0]);
+                }
+            }
+            if !has_unique_elements(elems) {
+                debug!("Unresolvable conflict at row: {}", row_idx);
+                return true;
+            }
+        }
+
+        // cols okay
+        for col_idx in 0..9 {
+            let mut elems = vec![];
+            for row_idx in 0..9 {
+                if self.grid[row_idx][col_idx].len() == 1 {
+                    elems.push(self.grid[row_idx][col_idx][0]);
+                }
+            }
+            if !has_unique_elements(elems) {
+                debug!("Unresolvable conflict at col: {}", col_idx);
+                return true;
+            }
+        }
+
+        // cells okay
+        for meta_col_idx in 0..3 {
+            for meta_row_idx in 0..3 {
+                let mut cell_elems = vec![];
+                for col_idx_in_cell in 0..3 {
+                    for row_idx_in_cell in 0..3 {
+                        let row_idx = meta_row_idx * 3 + row_idx_in_cell;
+                        let col_idx = meta_col_idx * 3 + col_idx_in_cell;
+                        if self.grid[row_idx][col_idx].len() == 1 {
+                            cell_elems.push(self.grid[row_idx][col_idx][0]);
+                        }
+                    }
+                }
+                if !has_unique_elements(cell_elems) {
+                    debug!(
+                        "Unresolvable conflict at cell: meta_row_idx {} meta_col_idx {}",
+                        meta_row_idx, meta_col_idx
+                    );
+                    return true;
+                }
+            }
+        }
+
+        false
+    }
+
+    fn get_best_place_and_number_to_insert(&self) -> Option<InsertionCandidate> {
+        // get place with least options, but more than one option
+
+        let mut best_row = 0;
+        let mut best_col = 0;
+        let mut best_els = vec![];
+        let mut shortest_len = 100;
+
+        // check for single option in row/col/cell
+        // elemnt mindestens länge 2
+        'single_el_search: for row_idx in 0..9 {
+            for col_idx in 0..9 {
+                let current_prob_len = self.grid[row_idx][col_idx].len();
+                if current_prob_len == 1 {
+                    continue;
+                }
+                for el in &self.grid[row_idx][col_idx] {
+                    // check if single possible el
+                    if is_single_element_in_col(self, row_idx, col_idx, *el)
+                        || is_single_element_in_row(self, row_idx, col_idx, *el)
+                        || is_single_element_in_cell(self, row_idx, col_idx, *el)
+                    {
+                        best_row = row_idx;
+                        best_col = col_idx;
+                        best_els = vec![*el];
+                        break 'single_el_search;
+                    }
+                }
+            }
+        }
+
+        if best_els.is_empty() {
+            'outer: for row_idx in 0..9 {
+                for col_idx in 0..9 {
+                    let current_prob_len = self.grid[row_idx][col_idx].len();
+                    if current_prob_len == 1 {
+                        continue;
+                    } else if current_prob_len == 2 {
+                        best_row = row_idx;
+                        best_col = col_idx;
+                        best_els = self.grid[row_idx][col_idx].clone();
+                        break 'outer;
+                    } else if current_prob_len > 2 && current_prob_len < shortest_len {
+                        best_row = row_idx;
+                        best_col = col_idx;
+                        best_els = self.grid[row_idx][col_idx].clone();
+                        shortest_len = current_prob_len;
+                    }
+                }
+            }
+        }
+        if best_els.is_empty() {
+            return None;
+        }
+
+        Some(InsertionCandidate {
+            row_idx: best_row,
+            col_idx: best_col,
+            candidates: best_els,
+        })
+    }
+}
+
+impl std::fmt::Display for SudokuCandidates {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let mut some_str = "".to_string();
+        for row_idx in 0..9 {
+            for col_idx in 0..9 {
+                let cand_str = self.grid[row_idx][col_idx]
+                    .iter()
+                    .map(|i| i.to_string())
+                    .collect::<String>();
+                let sym = format!("{: >9},", cand_str);
+                some_str.push_str(&sym);
+            }
+            some_str.push_str("\n");
+        }
+
+        write!(f, "\n{}", some_str)
+    }
 }
 
 fn parse_sudokus(filepath: &str) -> Vec<SudokuCandidates> {
@@ -69,6 +234,7 @@ fn parse_sudokus(filepath: &str) -> Vec<SudokuCandidates> {
     candidates
 }
 
+/*
 fn _check_conflict_for_element(problem: &SudokuCandidates, row_idx: usize, col_idx: usize) -> bool {
     // check row
     for col_test_idx in 0..9 {
@@ -107,7 +273,7 @@ fn _check_conflict_for_element(problem: &SudokuCandidates, row_idx: usize, col_i
     }
     true
 }
-
+*/
 fn remove_from_neighbors(
     problem: &SudokuCandidates,
     el_row_idx: usize,
@@ -207,25 +373,6 @@ fn remove_from_neighbors(
     Some(problem)
 }
 
-impl std::fmt::Display for SudokuCandidates {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let mut some_str = "".to_string();
-        for row_idx in 0..9 {
-            for col_idx in 0..9 {
-                let cand_str = self.grid[row_idx][col_idx]
-                    .iter()
-                    .map(|i| i.to_string())
-                    .collect::<String>();
-                let sym = format!("{: >9},", cand_str);
-                some_str.push_str(&sym);
-            }
-            some_str.push_str("\n");
-        }
-
-        write!(f, "\n{}", some_str)
-    }
-}
-
 fn has_unique_elements<T>(iter: T) -> bool
 where
     T: IntoIterator,
@@ -233,91 +380,6 @@ where
 {
     let mut uniq = HashSet::new();
     iter.into_iter().all(move |x| uniq.insert(x))
-}
-
-fn solution_has_unresolvable_conflicts(solution: &SudokuCandidates) -> bool {
-    // rows okay
-    for row_idx in 0..9 {
-        let mut elems = vec![];
-        for col_idx in 0..9 {
-            if solution.grid[row_idx][col_idx].len() == 1 {
-                elems.push(solution.grid[row_idx][col_idx][0]);
-            }
-        }
-        if !has_unique_elements(elems) {
-            debug!("Unresolvable conflict at row: {}", row_idx);
-            return true;
-        }
-    }
-
-    // cols okay
-    for col_idx in 0..9 {
-        let mut elems = vec![];
-        for row_idx in 0..9 {
-            if solution.grid[row_idx][col_idx].len() == 1 {
-                elems.push(solution.grid[row_idx][col_idx][0]);
-            }
-        }
-        if !has_unique_elements(elems) {
-            debug!("Unresolvable conflict at col: {}", col_idx);
-            return true;
-        }
-    }
-
-    // cells okay
-    for meta_col_idx in 0..3 {
-        for meta_row_idx in 0..3 {
-            let mut cell_elems = vec![];
-            for col_idx_in_cell in 0..3 {
-                for row_idx_in_cell in 0..3 {
-                    let row_idx = meta_row_idx * 3 + row_idx_in_cell;
-                    let col_idx = meta_col_idx * 3 + col_idx_in_cell;
-                    if solution.grid[row_idx][col_idx].len() == 1 {
-                        cell_elems.push(solution.grid[row_idx][col_idx][0]);
-                    }
-                }
-            }
-            if !has_unique_elements(cell_elems) {
-                debug!(
-                    "Unresolvable conflict at cell: meta_row_idx {} meta_col_idx {}",
-                    meta_row_idx, meta_col_idx
-                );
-                return true;
-            }
-        }
-    }
-
-    false
-}
-
-fn solution_is_correct(solution: &SudokuCandidates) -> bool {
-    // only one element per cell
-    for row in &solution.grid {
-        for col in row {
-            if col.len() != 1 {
-                return false;
-            }
-        }
-    }
-    for col_idx in 0..9 {
-        let mut sum_col_elems = 0;
-        for row_idx in 0..9 {
-            sum_col_elems += solution.grid[row_idx][col_idx][0];
-        }
-        if sum_col_elems != 9 * 10 / 2 {
-            return false;
-        }
-    }
-    for row_idx in 0..9 {
-        let mut sum_row_elems = 0;
-        for col_idx in 0..9 {
-            sum_row_elems += solution.grid[row_idx][col_idx][0];
-        }
-        if sum_row_elems != 9 * 10 / 2 {
-            return false;
-        }
-    }
-    true
 }
 
 #[derive(Clone, Debug)]
@@ -392,68 +454,6 @@ fn is_single_element_in_cell(
     true
 }
 
-fn get_best_place_and_number_to_insert(problem: &SudokuCandidates) -> Option<InsertionCandidate> {
-    // get place with least options, but more than one option
-
-    let mut best_row = 0;
-    let mut best_col = 0;
-    let mut best_els = vec![];
-    let mut shortest_len = 100;
-
-    // check for single option in row/col/cell
-    // elemnt mindestens länge 2
-    'single_el_search: for row_idx in 0..9 {
-        for col_idx in 0..9 {
-            let current_prob_len = problem.grid[row_idx][col_idx].len();
-            if current_prob_len == 1 {
-                continue;
-            }
-            for el in &problem.grid[row_idx][col_idx] {
-                // check if single possible el
-                if is_single_element_in_col(problem, row_idx, col_idx, *el)
-                    || is_single_element_in_row(problem, row_idx, col_idx, *el)
-                    || is_single_element_in_cell(problem, row_idx, col_idx, *el)
-                {
-                    best_row = row_idx;
-                    best_col = col_idx;
-                    best_els = vec![*el];
-                    break 'single_el_search;
-                }
-            }
-        }
-    }
-
-    if best_els.is_empty() {
-        'outer: for row_idx in 0..9 {
-            for col_idx in 0..9 {
-                let current_prob_len = problem.grid[row_idx][col_idx].len();
-                if current_prob_len == 1 {
-                    continue;
-                } else if current_prob_len == 2 {
-                    best_row = row_idx;
-                    best_col = col_idx;
-                    best_els = problem.grid[row_idx][col_idx].clone();
-                    break 'outer;
-                } else if current_prob_len > 2 && current_prob_len < shortest_len {
-                    best_row = row_idx;
-                    best_col = col_idx;
-                    best_els = problem.grid[row_idx][col_idx].clone();
-                    shortest_len = current_prob_len;
-                }
-            }
-        }
-    }
-    if best_els.is_empty() {
-        return None;
-    }
-
-    Some(InsertionCandidate {
-        row_idx: best_row,
-        col_idx: best_col,
-        candidates: best_els,
-    })
-}
-
 fn solve_sudoku(
     problem_opt: Option<SudokuCandidates>,
     recursion_depth: usize,
@@ -463,13 +463,13 @@ fn solve_sudoku(
     if let Some(problem) = problem_opt {
         debug!("Depth: {}\n {}", recursion_depth, problem);
 
-        if solution_is_correct(&problem) {
+        if problem.is_correct() {
             // base case: only one possible number in each cell, solution found
             Some(problem)
-        } else if solution_has_unresolvable_conflicts(&problem) {
+        } else if problem.has_unresolvable_conflicts() {
             None
         } else {
-            let insertion_cand_opt = get_best_place_and_number_to_insert(&problem);
+            let insertion_cand_opt = problem.get_best_place_and_number_to_insert();
 
             debug!(
                 "Depth: {} Found insertion candidate {:?}",
