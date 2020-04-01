@@ -10,9 +10,31 @@ use std::collections::HashSet;
 use std::fs;
 use std::hash::Hash;
 
+pub fn wasm_solve_sudoku(input_str: &str) -> String {
+    let input_str = input_str.trim();
+    assert_eq!(input_str.len(), 81, "Incorrect length of input string!");
+    let sudoku_problem = SudokuCandidates::from_vec(convert_problem_str(input_str));
+    let solution_opt = solve_sudoku(Some(sudoku_problem), 0);
+    if let Some(solution) = solution_opt {
+        solution.to_continuous_string()
+    } else {
+        println!("Failed to solve {}", input_str);
+        input_str.to_owned()
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct SudokuCandidates {
     grid: Vec<Vec<Vec<u8>>>,
+}
+
+fn convert_problem_str(problem_raw_in: &str) -> Vec<u8> {
+    problem_raw_in
+        .split("")
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+        .map(|s| s.parse().unwrap())
+        .collect()
 }
 
 impl SudokuCandidates {
@@ -22,6 +44,7 @@ impl SudokuCandidates {
             grid: vec![vec![(1..10).collect::<Vec<u8>>(); 9]; 9],
         }
     }
+
     fn from_vec(numbers: Vec<u8>) -> SudokuCandidates {
         assert!(numbers.len() == 81);
         let mut problem = SudokuCandidates::initial();
@@ -38,6 +61,17 @@ impl SudokuCandidates {
         }
 
         problem
+    }
+
+    fn to_continuous_string(&self) -> String {
+        let mut res_str: String = "".to_owned();
+        for row_idx in 0..9 {
+            for col_idx in 0..9 {
+                let el = self.grid[row_idx][col_idx][0].to_string();
+                res_str += &el;
+            }
+        }
+        res_str
     }
 
     fn get_duplicates_in_column(
@@ -299,14 +333,13 @@ pub fn parse_sudokus(filepath: &str) -> Vec<SudokuCandidates> {
         // replace any non numeric characters in the line with 0
         let non_numeric_chars = Regex::new(r"[^0-9]").unwrap();
         let line_no_commas = line.replace(",", "");
-        let result = non_numeric_chars.replace_all(&line_no_commas, "0");
-        let problem_raw: Vec<u8> = result
-            .split("")
-            .map(|s| s.trim())
-            .filter(|s| !s.is_empty())
-            .map(|s| s.parse().unwrap())
-            .collect();
+        let problem_str_raw = non_numeric_chars
+            .replace_all(&line_no_commas, "0")
+            .to_owned();
+
+        let problem_raw: Vec<u8> = convert_problem_str(&problem_str_raw);
         let cand = SudokuCandidates::from_vec(problem_raw);
+
         candidates.push(cand);
     }
     candidates
@@ -499,5 +532,20 @@ pub fn solve_sudoku(
     } else {
         debug!("Received None: {}", recursion_depth);
         None
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_solve_js_interface() {
+        assert_eq!(
+            wasm_solve_sudoku(
+                "006037508700010900130050020002908000050020430600000090200005704003100060498600000"
+            ),
+            "926437518785216943134859627342968175859721436617543892261395784573184269498672351"
+        );
     }
 }
