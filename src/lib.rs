@@ -1,3 +1,4 @@
+use wasm_bindgen::prelude::*;
 #[macro_use]
 extern crate log;
 extern crate chrono;
@@ -10,6 +11,7 @@ use std::collections::HashSet;
 use std::fs;
 use std::hash::Hash;
 
+#[wasm_bindgen]
 pub fn wasm_solve_sudoku(input_str: &str) -> String {
     let input_str = input_str.trim();
     assert_eq!(input_str.len(), 81, "Incorrect length of input string!");
