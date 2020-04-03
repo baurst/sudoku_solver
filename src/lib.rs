@@ -550,4 +550,11 @@ mod tests {
             "926437518785216943134859627342968175859721436617543892261395784573184269498672351"
         );
     }
+    #[test]
+    fn test_trivial_problem_is_solvable() {
+        let sudoku_vec = convert_problem_str(
+            "000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        );
+        assert!(solve_sudoku(Some(SudokuCandidates::from_vec(sudoku_vec)), 0).is_some());
+    }
 }
