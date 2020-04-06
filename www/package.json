@@ -1,8 +1,7 @@
 {
-  "name": "create-wasm-app",
+  "name": "sudoku-wasm-client",
   "version": "0.1.0",
-  "description": "create an app to consume rust-generated wasm packages",
-  "main": "index.js",
+  "main": "src/index.js",
   "bin": {
     "create-wasm-app": ".bin/create-wasm-app.js"
   },
@@ -27,7 +26,16 @@
   },
   "homepage": "https://github.com/rustwasm/create-wasm-app#readme",
   "dependencies": {
-    "sudoku_solver": "file:../pkg"
+    "sudoku_solver": "file:../pkg",
+	"@testing-library/jest-dom": "^4.2.4",
+    "@testing-library/react": "^9.3.2",
+    "@testing-library/user-event": "^7.1.2",
+    "bootstrap": "^4.4.1",
+    "react": "^16.13.1",
+    "react-bootstrap": "^1.0.0",
+    "react-dom": "^16.13.1",
+    "react-scripts": "3.4.1",
+    "typescript": "^3.8.3"
   },
   "devDependencies": {
     "hello-wasm-pack": "^0.1.0",
