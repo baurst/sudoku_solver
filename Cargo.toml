@@ -10,9 +10,8 @@ name = "sudoku_solver"
 path = "src/lib.rs"
 
 [[bin]]
-name = "sudoku_solver"
+name = "sudoku_solver_bin"
 path = "src/main.rs"
-
 
 [dependencies]
 clap = "2.33.0"
