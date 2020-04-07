@@ -30,7 +30,8 @@
     "@types/react": "^16.9.2",
     "@types/react-dom": "^16.9.0",
     "react": "^16.9.0",
-    "react-dom": "^16.9.0"
+    "react-dom": "^16.9.0",
+    "sudoku_solver": "file:../pkg"
   },
   "devDependencies": {
     "hello-wasm-pack": "^0.1.0",
