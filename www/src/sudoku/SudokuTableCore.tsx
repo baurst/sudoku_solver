@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import * as wasm from "sudoku_solver";
+
 
 interface SudokuTableProps {
   sudoku: number[];
@@ -22,7 +24,7 @@ function useSudokuTableCore(size: number): SudokuTableProps {
     //TODO
     let solvedSudoku = new Array(81).fill(0);
     return new Promise((resolve) => {
-      solvedSudoku = new Array(81).fill(1);
+      solvedSudoku = wasm.wasm_solve_sudoku("006037508700010900130050020002908000050020430600000090200005704003100060498600000").split('').map(x=>+x);
       setTimeout(resolve, 1);
     }).then(() => setSudoku(solvedSudoku));
   };

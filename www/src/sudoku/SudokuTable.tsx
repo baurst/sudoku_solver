@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import useSudokuTableCore from "./SudokuTableCore";
 import Button from "react-bootstrap/Button";
-import * as wasm from "sudoku_solver";
 
 function tableRow(
   size: number,
@@ -53,11 +52,6 @@ function tableEntry(
 }
 
 const SudokuTable: React.FC = () => {
-	
-	var a = wasm.wasm_solve_sudoku("006037508700010900130050020002908000050020430600000090200005704003100060498600000");
-
-	console.log(a);
-
   const size = 9;
   const sudokuTableCore = useSudokuTableCore(size);
   const sizeElements = Array(size)
