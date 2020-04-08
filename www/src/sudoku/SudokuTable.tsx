@@ -81,7 +81,6 @@ const SudokuTable: React.FC = () => {
           )}
         </tbody>
       </table>
-      Sudoku String = {sudokuTableCore.sudoku}
       <Button variant="primary" disabled={isSolving} onClick={handleClick}>
         {isSolving ? "Solving…" : "Solve"}
       </Button>
