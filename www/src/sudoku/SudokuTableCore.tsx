@@ -21,12 +21,9 @@ function useSudokuTableCore(size: number): SudokuTableProps {
   };
 
   const solveSudoku = () => {
-    //TODO
-    let solvedSudoku = new Array(81).fill(0);
-    return new Promise((resolve) => {
-      solvedSudoku = wasm.wasm_solve_sudoku("006037508700010900130050020002908000050020430600000090200005704003100060498600000").split('').map(x=>+x);
-      setTimeout(resolve, 1);
-    }).then(() => setSudoku(solvedSudoku));
+    let solvedSudoku = "";
+      solvedSudoku = wasm.wasm_solve_sudoku(sudoku.join(""));
+    setSudoku(solvedSudoku.split('').map(x=>+x));
   };
 
   useEffect(() => {

@@ -62,7 +62,8 @@ const SudokuTable: React.FC = () => {
   const handleClick = () => {
     if (!isSolving) {
       setSolving(true);
-      sudokuTableCore.solveSudoku().then(() => setSolving(false));
+      sudokuTableCore.solveSudoku(); 
+      setSolving(false);
     }
   };
 
