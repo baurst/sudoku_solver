@@ -1,7 +1,7 @@
 {
   "name": "sudoku-wasm-client",
   "version": "0.1.0",
-  "main": "src/index.js",
+  "main": "src/index.tsx",
   "bin": {
     "create-wasm-app": ".bin/create-wasm-app.js"
   },
