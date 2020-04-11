@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import useSudokuTableCore from "./SudokuTableCore";
 import Button from "react-bootstrap/Button";
+import Row from "react-bootstrap/Row";
 
 function tableRow(
   size: number,
@@ -67,6 +68,10 @@ const SudokuTable: React.FC = () => {
     }
   };
 
+  const handleClearClick = () => {
+      sudokuTableCore.clearSudoku(); 
+  };
+
   return (
     <>
       <table>
@@ -81,9 +86,14 @@ const SudokuTable: React.FC = () => {
           )}
         </tbody>
       </table>
+      <Row>
       <Button variant="primary" disabled={isSolving} onClick={handleClick}>
         {isSolving ? "Solving…" : "Solve"}
       </Button>
+      <Button variant="primary" disabled={isSolving} onClick={handleClearClick}>
+        Clear
+      </Button>
+      </Row>
     </>
   );
 };

@@ -6,6 +6,7 @@ interface SudokuTableProps {
   sudoku: number[];
   setValueInSudoku: Function;
   solveSudoku: Function;
+  clearSudoku: Function;
 }
 
 function useSudokuTableCore(size: number): SudokuTableProps {
@@ -26,6 +27,11 @@ function useSudokuTableCore(size: number): SudokuTableProps {
     setSudoku(solvedSudoku.split('').map(x=>+x));
   };
 
+  const clearSudoku = () => {
+    let emptySudoku = new Array(size * size).fill(0);
+    setSudoku(emptySudoku);
+  };
+
   useEffect(() => {
     console.log(sudoku.toString());
   }, [sudoku]);
@@ -34,6 +40,7 @@ function useSudokuTableCore(size: number): SudokuTableProps {
     sudoku: sudoku,
     setValueInSudoku: setValueInSudoku,
     solveSudoku: solveSudoku,
+    clearSudoku: clearSudoku,
   };
 }
 
