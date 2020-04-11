@@ -11,6 +11,35 @@ cd sudoku_solver
 cargo build --release
 ```
 
+## Steps to run in dev mode
+
+```bash
+sudo apt install git curl 
+
+# install rust and wasm-pack
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+rustup target add wasm32-unknown-unknown
+curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh 
+
+# install nvm (manager for node & npm, adapt version to latest!)
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.35.3/install.sh | bash
+nvm install node
+
+#clone repo
+git clone https://github.com/baurst/sudoku_solver.git
+cd sudoku_solver
+
+# build rust components
+wasm-pack build
+
+# build js components
+cd www
+npm install
+
+# start in dev mode
+npm start
+```
+
 ## Running the solver 
 In order to run the solver, the user must provide an input file containing one or more sudoku problems.
 Problems can be either comma separated or without separator.
