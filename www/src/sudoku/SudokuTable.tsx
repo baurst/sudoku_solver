@@ -44,7 +44,15 @@ function tableEntry(
             console.log(
               `change ${event.currentTarget.name} to ${event.currentTarget.value}`
             );
-            setValueInSudoku(entryNr, parseInt(event.currentTarget.value));
+            if (! isNaN(parseInt(event.currentTarget.value)) || event.currentTarget.value==="" ) {
+              let parseValue = parseInt(event.currentTarget.value);
+              if (isNaN(parseValue)){
+                setValueInSudoku(entryNr, 0);
+              }
+              else{
+                setValueInSudoku(entryNr,parseInt(event.currentTarget.value));
+              }            
+            }
           }}
         />
       </td>
