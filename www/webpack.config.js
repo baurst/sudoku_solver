@@ -48,6 +48,10 @@ module.exports = {
     ]
   },
   plugins: [
-    new CopyWebpackPlugin(['./src/index.html'])
+    new CopyWebpackPlugin(['./public/index.html']),
+    new CopyWebpackPlugin([
+      // relative path is from src
+      { from: './public/favicon.ico' }, // <- your path to favicon
+    ])
   ]
 };
