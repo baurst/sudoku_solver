@@ -1,15 +1,21 @@
 import React from 'react';                      
-import './App.css';                             
 import SudokuTable from './sudoku/SudokuTable'; 
+import Navbar from "react-bootstrap/Navbar";
                                                 
 function App() {                                
   return (                                      
-    <div className="App">                       
-      <header className="App-header">           
-        Sudoku                                  
+    <>                       
+      <header>
+      <Navbar bg="dark" variant="dark">
+    <Navbar.Brand href="#home">
+      Sudoku
+    </Navbar.Brand>
+  </Navbar>           
+      </header>  
+      <main>
       <SudokuTable />                           
-      </header>                                 
-    </div>                                      
+        </main>                               
+    </>                                      
   );                                            
 }                                               
                                                 
