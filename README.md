@@ -38,6 +38,10 @@ npm install
 
 # start in dev mode
 npm start
+
+# deploy to github pages
+npm run build
+npm run deploy
 ```
 
 ## Running the solver 
