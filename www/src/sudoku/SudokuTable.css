@@ -8,7 +8,8 @@
 
 .sudoku-table input[type=text]
 {
-	width:auto;
+    width:1.5rem;
+    height:1.5rem;
 	margin:0.0em;
     padding:0;
     text-align: center;

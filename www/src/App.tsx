@@ -2,6 +2,7 @@ import React from 'react';
 import SudokuTable from './sudoku/SudokuTable';
 import { Container, Navbar, Row } from "react-bootstrap";
 import logo from './logo.svg'
+import './App.css'
 
 function App() {
   return (
@@ -13,10 +14,10 @@ function App() {
               src={logo}
               width="30"
               height="30"
-              className="d-inline-block align-top"
+              className="d-inline-block align-top sudoku-logo"
               alt="bla"
-            />{' '}
-      Sudoku
+            />
+      &nbsp;&nbsp;Sudoku
     </Navbar.Brand>
         </Navbar>
       </header>

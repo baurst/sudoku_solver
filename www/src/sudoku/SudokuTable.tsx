@@ -7,7 +7,9 @@ function tableRow(
   size: number,
   rowNr: number,
   sudoku: number[],
-  setValueInSudoku: Function
+  setValueInSudoku: Function,
+  isUserInput: boolean[],
+
 ) {
   const sizeElements = Array(size)
     .fill(0)
@@ -17,17 +19,27 @@ function tableRow(
     <>
       <tr>
         {sizeElements.map((entry) =>
-          tableEntry(entry, sudoku, setValueInSudoku)
+          tableEntry(entry, sudoku, setValueInSudoku, isUserInput)
         )}
       </tr>
     </>
   );
 }
 
+const styles = {
+  text_normal: {
+    fontWeight: "normal",
+  } as React.CSSProperties,
+  text_bold: {
+    fontWeight: "bold",
+  } as React.CSSProperties,
+}
+
 function tableEntry(
   entryNr: number,
   sudoku: number[],
-  setValueInSudoku: Function
+  setValueInSudoku: Function,
+  isUserInput: boolean[],
 ) {
   const entryStr = `${entryNr}`;
   const cellNames = [
@@ -39,15 +51,15 @@ function tableEntry(
     "right-middle",
     "left-bottom",
     "middle-bottom",
-    "right-bottom"]; 
+    "right-bottom"];
 
-  const row = Math.floor(entryNr/9);
+  const row = Math.floor(entryNr / 9);
   const col = entryNr % 9;
-  const meta_cell_row = Math.floor(row/3);
-  const meta_cell_col = Math.floor(col/3);
-  const pos_row = row - meta_cell_row*3;
-  const pos_col = col - meta_cell_col*3;
-  const pos_idx = pos_row*3 + pos_col;
+  const meta_cell_row = Math.floor(row / 3);
+  const meta_cell_col = Math.floor(col / 3);
+  const pos_row = row - meta_cell_row * 3;
+  const pos_col = col - meta_cell_col * 3;
+  const pos_idx = pos_row * 3 + pos_col;
   const styleName = cellNames[pos_idx];
 
   return (
@@ -57,6 +69,7 @@ function tableEntry(
           value={sudoku[entryNr] === 0 ? "" : sudoku[entryNr]}
           name={entryStr}
           type="text"
+          style={isUserInput[entryNr] ? styles.text_bold : styles.text_normal}
           maxLength={1}
           size={1}
           onChange={(event: React.FormEvent<HTMLInputElement>) => {
@@ -109,7 +122,8 @@ const SudokuTable: React.FC = () => {
                 size,
                 row,
                 sudokuTableCore.sudoku,
-                sudokuTableCore.setValueInSudoku
+                sudokuTableCore.setValueInSudoku,
+                sudokuTableCore.isUserInput
               )
             )}
           </tbody>
