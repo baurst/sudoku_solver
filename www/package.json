@@ -2,16 +2,14 @@
   "name": "sudoku-wasm-client",
   "version": "0.1.0",
   "main": "src/index.tsx",
+  "homepage": "http://baurst.github.io/sudoku_solver",
   "bin": {
     "create-wasm-app": ".bin/create-wasm-app.js"
   },
   "scripts": {
     "build": "webpack --config webpack.config.js",
-    "start": "webpack-dev-server"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/rustwasm/create-wasm-app.git"
+    "start": "webpack-dev-server",
+    "deploy": "gh-pages -d dist"
   },
   "keywords": [
     "webassembly",
@@ -19,12 +17,6 @@
     "rust",
     "webpack"
   ],
-  "author": "Ashley Williams <ashley666ashley@gmail.com>",
-  "license": "(MIT OR Apache-2.0)",
-  "bugs": {
-    "url": "https://github.com/rustwasm/create-wasm-app/issues"
-  },
-  "homepage": "https://github.com/rustwasm/create-wasm-app#readme",
   "dependencies": {
     "@types/react": "^16.9.2",
     "@types/react-dom": "^16.9.0",
@@ -46,6 +38,7 @@
     "copy-webpack-plugin": "^5.0.0",
     "css-loader": "^3.2.0",
     "file-loader": "^6.0.0",
+    "gh-pages": "^2.2.0",
     "hello-wasm-pack": "^0.1.0",
     "html-webpack-plugin": "^3.2.0",
     "node-sass": "^4.13.0",
