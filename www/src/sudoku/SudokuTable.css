@@ -1,0 +1,27 @@
+.sudoku-table {
+    border-spacing: 0;
+    top:0;
+    bottom:0;
+    left:0;
+    right:0;
+}
+
+.sudoku-table input[type=text]
+{
+	width:auto;
+	margin:0.0em;
+    padding:0;
+    text-align: center;
+    border:0;
+    
+}
+
+.sudoku-table .right-middle{border-left:1px solid black;border-right:2px solid black;border-top:1px solid black;border-bottom:1px solid black;}
+.sudoku-table .left-middle{border-left:2px solid black;border-right:1px solid black;border-top:1px solid black;border-bottom:1px solid black;}
+.sudoku-table .middle-middle{border-left:1px solid black;border-right:1px solid black;border-top:1px solid black;border-bottom:1px solid black;}
+.sudoku-table .left-top{border-left:2px solid black;border-right:1px solid black;border-top:2px solid black;border-bottom:1px solid black;}
+.sudoku-table .left-bottom{border-left:2px solid black;border-right:1px solid black;border-top:1px solid black;border-bottom:2px solid black;}
+.sudoku-table .middle-bottom{border-left:1px solid black;border-right:1px solid black;border-top:1px solid black;border-bottom:2px solid black;}
+.sudoku-table .middle-top{border-left:1px solid black;border-right:1px solid black;border-top:2px solid black;border-bottom:1px solid black;}
+.sudoku-table .right-bottom{border-left:1px solid black;border-right:2px solid black;border-top:1px solid black;border-bottom:2px solid black;}
+.sudoku-table .right-top{border-left:1px solid black;border-right:2px solid black;border-top:2px solid black;border-bottom:1px solid black;}

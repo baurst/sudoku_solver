@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import useSudokuTableCore from "./SudokuTableCore";
-import Button from "react-bootstrap/Button";
-import Row from "react-bootstrap/Row";
+import { Button, Container, Row } from "react-bootstrap";
+import './SudokuTable.css'
 
 function tableRow(
   size: number,
@@ -30,10 +30,29 @@ function tableEntry(
   setValueInSudoku: Function
 ) {
   const entryStr = `${entryNr}`;
+  const cellNames = [
+    "left-top",
+    "middle-top",
+    "right-top",
+    "left-middle",
+    "middle-middle",
+    "right-middle",
+    "left-bottom",
+    "middle-bottom",
+    "right-bottom"]; 
+
+  const row = Math.floor(entryNr/9);
+  const col = entryNr % 9;
+  const meta_cell_row = Math.floor(row/3);
+  const meta_cell_col = Math.floor(col/3);
+  const pos_row = row - meta_cell_row*3;
+  const pos_col = col - meta_cell_col*3;
+  const pos_idx = pos_row*3 + pos_col;
+  const styleName = cellNames[pos_idx];
 
   return (
     <>
-      <td>
+      <td className={styleName}>
         <input
           value={sudoku[entryNr] === 0 ? "" : sudoku[entryNr]}
           name={entryStr}
@@ -44,14 +63,14 @@ function tableEntry(
             console.log(
               `change ${event.currentTarget.name} to ${event.currentTarget.value}`
             );
-            if (! isNaN(parseInt(event.currentTarget.value)) || event.currentTarget.value==="" ) {
+            if (!isNaN(parseInt(event.currentTarget.value)) || event.currentTarget.value === "") {
               let parseValue = parseInt(event.currentTarget.value);
-              if (isNaN(parseValue)){
+              if (isNaN(parseValue)) {
                 setValueInSudoku(entryNr, 0);
               }
-              else{
-                setValueInSudoku(entryNr,parseInt(event.currentTarget.value));
-              }            
+              else {
+                setValueInSudoku(entryNr, parseInt(event.currentTarget.value));
+              }
             }
           }}
         />
@@ -71,38 +90,40 @@ const SudokuTable: React.FC = () => {
   const handleClick = () => {
     if (!isSolving) {
       setSolving(true);
-      sudokuTableCore.solveSudoku(); 
+      sudokuTableCore.solveSudoku();
       setSolving(false);
     }
   };
 
   const handleClearClick = () => {
-      sudokuTableCore.clearSudoku(); 
+    sudokuTableCore.clearSudoku();
   };
 
   return (
-    <>
-      <table>
-        <tbody>
-          {sizeElements.map((row) =>
-            tableRow(
-              size,
-              row,
-              sudokuTableCore.sudoku,
-              sudokuTableCore.setValueInSudoku
-            )
-          )}
-        </tbody>
-      </table>
-      <Row>
-      <Button variant="primary" disabled={isSolving} onClick={handleClick}>
-        {isSolving ? "Solving…" : "Solve"}
-      </Button>
-      <Button variant="primary" disabled={isSolving} onClick={handleClearClick}>
-        Clear
+    <Container>
+      <Row className="justify-content-center">
+        <table className="sudoku-table">
+          <tbody>
+            {sizeElements.map((row) =>
+              tableRow(
+                size,
+                row,
+                sudokuTableCore.sudoku,
+                sudokuTableCore.setValueInSudoku
+              )
+            )}
+          </tbody>
+        </table>
+      </Row>
+      <Row className="mt-3 justify-content-center">
+        <Button className="mr-2" variant="primary" disabled={isSolving} onClick={handleClick}>
+          {isSolving ? "Solving…" : "Solve"}
+        </Button>
+        <Button className="ml-2" variant="primary" disabled={isSolving} onClick={handleClearClick}>
+          Clear
       </Button>
       </Row>
-    </>
+    </Container>
   );
 };
 
