@@ -4,12 +4,26 @@ rust:
   - beta
   - nightly
 cache: cargo
+
+INSTALL_NODE_VIA_NVM: &INSTALL_NODE_VIA_NVM
+  |
+    rustup target add wasm32-unknown-unknown
+    curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.35.3/install.sh | bash
+    source ~/.nvm/nvm.sh
+    nvm install node
+
+install:
+  - *INSTALL_NODE_VIA_NVM
+  - curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh -s -- -f
+
 matrix:
   allow_failures:
     - rust: nightly
 script:
   - cargo build --verbose --all
   - cargo test --verbose --all
+  - wasm-pack build
+  - cd ./www && npm install && npm run build
 notifications:
   email:
     on_success: never
