@@ -16,12 +16,24 @@ pub fn wasm_solve_sudoku(input_str: &str) -> String {
     let input_str = input_str.trim();
     assert_eq!(input_str.len(), 81, "Incorrect length of input string!");
     let sudoku_problem = SudokuCandidates::from_vec(convert_problem_str(input_str));
-    let solution_opt = solve_sudoku(Some(sudoku_problem), 0);
+    let solution_opt = solve_sudoku(sudoku_problem, 0);
     if let Some(solution) = solution_opt {
         solution.to_continuous_string()
     } else {
         println!("Failed to solve {}", input_str);
         input_str.to_owned()
+    }
+}
+
+#[wasm_bindgen]
+pub fn wasm_sudoku_contains_conflicts(input_str: &str) -> bool {
+    let input_str = input_str.trim();
+    assert_eq!(input_str.len(), 81, "Incorrect length of input string!");
+    let sudoku_problem = SudokuCandidates::from_vec(convert_problem_str(input_str));
+    if let Some(prob) = sudoku_problem {
+        prob.has_unresolvable_conflicts()
+    } else {
+        true
     }
 }
 
@@ -47,7 +59,7 @@ impl SudokuCandidates {
         }
     }
 
-    fn from_vec(numbers: Vec<u8>) -> SudokuCandidates {
+    fn from_vec(numbers: Vec<u8>) -> Option<SudokuCandidates> {
         assert!(numbers.len() == 81);
         let mut problem = SudokuCandidates::initial();
 
@@ -59,10 +71,15 @@ impl SudokuCandidates {
             let col_idx = i % 9;
 
             problem.grid[row_idx][col_idx] = vec![*item];
-            problem = remove_duplicates(&problem, row_idx, col_idx, *item).unwrap();
-        }
+            let prob_tmp_opt = remove_duplicates(&problem, row_idx, col_idx, *item);
 
-        problem
+            if let Some(prob) = prob_tmp_opt {
+                problem = prob;
+            } else {
+                return None;
+            }
+        }
+        Some(problem)
     }
 
     fn to_continuous_string(&self) -> String {
@@ -342,7 +359,14 @@ pub fn parse_sudokus(filepath: &str) -> Vec<SudokuCandidates> {
         let problem_raw: Vec<u8> = convert_problem_str(&problem_str_raw);
         let cand = SudokuCandidates::from_vec(problem_raw);
 
-        candidates.push(cand);
+        if let Some(cand) = cand {
+            candidates.push(cand);
+        } else {
+            println!(
+                "Failed to parse sudoku from {} - possibly containts conflicts.",
+                &problem_str_raw
+            );
+        }
     }
     candidates
 }
@@ -542,6 +566,20 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_has_no_conflicts_js_interface() {
+        assert!(!wasm_sudoku_contains_conflicts(
+            "006037508700010900130050020002908000050020430600000090200005704003100060498600000"
+        ));
+    }
+
+    #[test]
+    fn test_has_conflicts_js_interface() {
+        assert!(wasm_sudoku_contains_conflicts(
+            "066037508700010900130050020002908000050020430600000090200005704003100060498600000"
+        ));
+    }
+
+    #[test]
     fn test_solve_js_interface() {
         assert_eq!(
             wasm_solve_sudoku(
@@ -550,11 +588,31 @@ mod tests {
             "926437518785216943134859627342968175859721436617543892261395784573184269498672351"
         );
     }
+
+    #[test]
+    fn test_unsolvable_solve_js_interface() {
+        assert_eq!(
+            wasm_solve_sudoku(
+                "066037508700010900130050020002908000050020430600000090200005704003100060498600000"
+            ),
+            "066037508700010900130050020002908000050020430600000090200005704003100060498600000"
+        );
+    }
+
     #[test]
     fn test_trivial_problem_is_solvable() {
         let sudoku_vec = convert_problem_str(
             "000000000000000000000000000000000000000000000000000000000000000000000000000000000",
         );
-        assert!(solve_sudoku(Some(SudokuCandidates::from_vec(sudoku_vec)), 0).is_some());
+        assert!(solve_sudoku(SudokuCandidates::from_vec(sudoku_vec), 0).is_some());
+    }
+
+    #[test]
+    fn test_trivial_wrong_problem_is_unsolvable() {
+        let sudoku_vec = convert_problem_str(
+            "110000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        );
+        let sol_opt = solve_sudoku(SudokuCandidates::from_vec(sudoku_vec), 0);
+        assert!(sol_opt.is_none());
     }
 }
