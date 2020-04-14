@@ -69,7 +69,7 @@ function tableEntry(
           value={sudoku[entryNr] === 0 ? "" : sudoku[entryNr]}
           name={entryStr}
           type="text"
-          pattern="[1-9]?"
+          pattern="[0-9]*"
           style={isUserInput[entryNr] ? styles.text_bold : styles.text_normal}
           maxLength={1}
           size={1}
