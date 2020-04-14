@@ -6,6 +6,7 @@ interface SudokuTableProps {
   sudoku: number[];
   isUserInput: boolean[];
   setValueInSudoku: Function;
+  checkSudokuIsSolvable: Function;
   solveSudoku: Function;
   clearSudoku: Function;
 }
@@ -31,6 +32,11 @@ function useSudokuTableCore(size: number): SudokuTableProps {
     setSudoku(solvedSudoku.split('').map(x=>+x));
   };
 
+  const checkSudokuIsSolvable = () => {
+    let sudokuHasConflict = wasm.wasm_sudoku_contains_conflicts(sudoku.join(""));
+    return !sudokuHasConflict;
+  };
+
   const clearSudoku = () => {
     let emptySudoku = new Array(size * size).fill(0);
     let emptyIsUserInput = new Array(size * size).fill(false);
@@ -46,6 +52,7 @@ function useSudokuTableCore(size: number): SudokuTableProps {
     sudoku: sudoku,
     isUserInput: isUserInput,
     setValueInSudoku: setValueInSudoku,
+    checkSudokuIsSolvable: checkSudokuIsSolvable,
     solveSudoku: solveSudoku,
     clearSudoku: clearSudoku,
   };

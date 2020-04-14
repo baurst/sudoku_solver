@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import useSudokuTableCore from "./SudokuTableCore";
-import { Button, Container, Row } from "react-bootstrap";
+import { Button, Container, Row, Modal } from "react-bootstrap";
 import './SudokuTable.css'
 
 function tableRow(
@@ -101,11 +101,37 @@ const SudokuTable: React.FC = () => {
     .map((v, i) => i);
   const [isSolving, setSolving] = useState(false);
 
+  const [showWarning, setShowWarning] = useState(false);
+
+  const ConflictWarning: React.FC = () => {
+    const handleClose = () => setShowWarning(false);
+
+    return (
+      <Modal show={showWarning} onHide={handleClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>WARNING</Modal.Title>
+        </Modal.Header>
+        <Modal.Body><p> Sudoku contains unsolvable conflict(s)!</p> <p> Please fix the conflicts and try again!</p> </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={handleClose}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    );
+  }
+
   const handleClick = () => {
     if (!isSolving) {
-      setSolving(true);
-      sudokuTableCore.solveSudoku();
-      setSolving(false);
+      let sudokuIsOkay = sudokuTableCore.checkSudokuIsSolvable();
+      if(sudokuIsOkay){
+        setSolving(true);
+        sudokuTableCore.solveSudoku();
+        setSolving(false);
+      } else {
+        setShowWarning(true);
+      }
+
     }
   };
 
@@ -115,6 +141,7 @@ const SudokuTable: React.FC = () => {
 
   return (
     <Container>
+      <ConflictWarning> </ConflictWarning>
       <Row className="justify-content-center">
         <table className="sudoku-table">
           <tbody>
