@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import useSudokuTableCore from "./SudokuTableCore";
-import { Button, Container, Row, Modal } from "react-bootstrap";
+import { Button, Container, Row, Modal, Col} from "react-bootstrap";
 import './SudokuTable.css'
 
 function tableRow(
@@ -139,6 +139,10 @@ const SudokuTable: React.FC = () => {
     sudokuTableCore.clearSudoku();
   };
 
+  const handleInsertClick = () => {
+    sudokuTableCore.insertSampleSudoku();
+  };
+
   return (
     <Container>
       <ConflictWarning> </ConflictWarning>
@@ -158,12 +162,21 @@ const SudokuTable: React.FC = () => {
         </table>
       </Row>
       <Row className="mt-3 justify-content-center">
-        <Button className="mr-2" variant="primary" disabled={isSolving} onClick={handleClick}>
-          {isSolving ? "Solving…" : "Solve"}
-        </Button>
-        <Button className="ml-2" variant="primary" disabled={isSolving} onClick={handleClearClick}>
-          Clear
-      </Button>
+        <Col>
+          <Button className="ml-2" variant="primary" disabled={isSolving} onClick={handleInsertClick}>
+            Insert Example
+          </Button>
+        </Col>
+        <Col>
+          <Button className="ml-2" variant="primary" disabled={isSolving} onClick={handleClick}>
+            {isSolving ? "Solving…" : "Solve"}
+          </Button>
+        </Col>
+        <Col>
+          <Button className="ml-2" variant="primary" disabled={isSolving} onClick={handleClearClick}>
+            Clear
+          </Button>
+        </Col>
       </Row>
     </Container>
   );

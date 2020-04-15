@@ -8,6 +8,7 @@ interface SudokuTableProps {
   setValueInSudoku: Function;
   checkSudokuIsSolvable: Function;
   solveSudoku: Function;
+  insertSampleSudoku: Function;
   clearSudoku: Function;
 }
 
@@ -26,9 +27,21 @@ function useSudokuTableCore(size: number): SudokuTableProps {
 
   };
 
+  const insertSampleSudoku = () => {
+    let example_sudoku = "";
+    example_sudoku = wasm.wasm_get_sample_sudoku_string(Math.random());
+    let isUserInput = new Array(size * size).fill(false);
+    let example_sudoku_array = example_sudoku.split('').map(x=>+x)
+    for (let index = 0; index < example_sudoku.length; ++index) {
+      isUserInput[index] = example_sudoku_array[index] !== 0;
+    }
+    setIsUserInput(isUserInput);
+    setSudoku(example_sudoku_array);
+  };
+
   const solveSudoku = () => {
     let solvedSudoku = "";
-      solvedSudoku = wasm.wasm_solve_sudoku(sudoku.join(""));
+    solvedSudoku = wasm.wasm_solve_sudoku(sudoku.join(""));
     setSudoku(solvedSudoku.split('').map(x=>+x));
   };
 
@@ -53,6 +66,7 @@ function useSudokuTableCore(size: number): SudokuTableProps {
     isUserInput: isUserInput,
     setValueInSudoku: setValueInSudoku,
     checkSudokuIsSolvable: checkSudokuIsSolvable,
+    insertSampleSudoku: insertSampleSudoku,
     solveSudoku: solveSudoku,
     clearSudoku: clearSudoku,
   };

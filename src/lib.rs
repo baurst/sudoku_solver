@@ -4,11 +4,8 @@ extern crate log;
 extern crate chrono;
 extern crate clap;
 extern crate env_logger;
-extern crate rand;
 extern crate regex;
 
-use rand::seq::SliceRandom;
-use rand::thread_rng;
 use regex::Regex;
 use std::collections::HashSet;
 use std::fs;
@@ -565,7 +562,12 @@ pub fn solve_sudoku(
 }
 
 #[wasm_bindgen]
-pub fn wasm_get_random_sudoku_string() -> String {
+pub fn wasm_get_sample_sudoku_string(random_number: f64) -> String {
+    // tried using the rand method from cate rand but it panicks:
+    // panicked at 'could not initialize thread_rng: getrandom: this target is not supported'
+    // use rand::seq::SliceRandom;
+    // use rand::thread_rng;
+
     let problems = vec![
         "015040002020560098300010007200000600940001000030680704458000000090872050600430900",
         "270600050000070406006059030040005600081000040029006173390000002000097800807140005",
@@ -573,8 +575,9 @@ pub fn wasm_get_random_sudoku_string() -> String {
         "006030010300605000070029000020300984794000300000001005530008200069047000041200590",
         "040038500905000000000010460001650043000700901082300050830100074276000090000960002",
     ];
-    let mut rng = thread_rng();
-    (*problems.choose(&mut rng).unwrap()).to_string()
+
+    let random_idx = random_number * problems.len() as f64;
+    problems[random_idx as usize].to_string()
 }
 
 #[cfg(test)]
