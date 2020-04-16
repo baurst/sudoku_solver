@@ -162,21 +162,15 @@ const SudokuTable: React.FC = () => {
         </table>
       </Row>
       <Row className="mt-3 justify-content-center">
-        <Col>
           <Button className="ml-2" variant="primary" disabled={isSolving} onClick={handleInsertClick}>
             Insert Example
           </Button>
-        </Col>
-        <Col>
           <Button className="ml-2" variant="primary" disabled={isSolving} onClick={handleClick}>
             {isSolving ? "Solving…" : "Solve"}
           </Button>
-        </Col>
-        <Col>
           <Button className="ml-2" variant="primary" disabled={isSolving} onClick={handleClearClick}>
             Clear
           </Button>
-        </Col>
       </Row>
     </Container>
   );
