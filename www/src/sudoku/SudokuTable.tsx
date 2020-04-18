@@ -32,6 +32,7 @@ const styles = {
   } as React.CSSProperties,
   text_bold: {
     fontWeight: "bold",
+    color: "red",
   } as React.CSSProperties,
 }
 
