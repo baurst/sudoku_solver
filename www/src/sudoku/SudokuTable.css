@@ -9,8 +9,8 @@
 .sudoku-table input[type=text]
 {
     font-size: 20pt;
-    width:2.2rem;
-    height:2.2rem;
+    width:2.0rem;
+    height:2.0rem;
 	margin:0.0rem;
     padding:0;
     text-align: center;
