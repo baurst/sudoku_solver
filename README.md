@@ -7,7 +7,9 @@ Try it here: [Sudoku Solver](https://baurst.github.io/sudoku_solver/ "Sudoku Sol
 [![Build Status](https://travis-ci.com/baurst/sudoku_solver.svg?token=KGmoNyosUqTq92iqGZE9&branch=master)](https://travis-ci.com/baurst/sudoku_solver)
 
 
-![Screenshots](sample_data/readme_example.png)
+<p align="center">
+  <img src="sample_data/example.gif" alt="Screencast"/>
+</p>
 
 
 ## Implementation Details
