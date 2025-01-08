@@ -6,7 +6,7 @@ extern crate env_logger;
 extern crate regex;
 
 use chrono::Local;
-use clap::{App, Arg};
+use clap::{Arg, ArgAction, Command};
 use env_logger::Builder;
 use log::LevelFilter;
 use std::io::Write;
@@ -15,25 +15,25 @@ use std::time::Instant;
 use sudoku_solver::{parse_sudokus, solve_sudoku};
 
 fn main() {
-    let matches = App::new("Sudoku Solver")
-        .version("0.1")
+    let matches = Command::new("Sudoku Solver")
+        .version("0.2.0")
         .author("baurst")
         .about("Fast Sudoku solver.")
         .arg(
-            Arg::with_name("INPUT")
+            Arg::new("INPUT")
                 .help("Sudoku input file to use. One problem per line.")
                 .required(true)
                 .index(1),
         )
         .arg(
-            Arg::with_name("v")
-                .short("v")
-                .multiple(true)
+            Arg::new("v")
+                .short('v')
+                .action(ArgAction::Count)
                 .help("Sets the level of verbosity"),
         )
         .get_matches();
 
-    let loglevel = match matches.occurrences_of("v") {
+    let loglevel = match *matches.get_one::<u8>("v").unwrap_or(&0) {
         0 => LevelFilter::Info,
         _ => LevelFilter::Debug,
     };
@@ -51,7 +51,7 @@ fn main() {
         .filter(None, loglevel)
         .init();
 
-    let prob = matches.value_of("INPUT").unwrap();
+    let prob = matches.get_one::<String>("INPUT").unwrap();
 
     let sudoku_problems = parse_sudokus(prob);
 
