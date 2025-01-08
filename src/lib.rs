@@ -64,7 +64,7 @@ impl SudokuCandidates {
         let mut problem = SudokuCandidates::initial();
 
         for (i, item) in numbers.iter().enumerate() {
-            if *item == 0 as u8 {
+            if *item == 0_u8 {
                 continue;
             }
             let row_idx = i / 9;
@@ -336,7 +336,7 @@ impl std::fmt::Display for SudokuCandidates {
                 let sym = format!("{: >9},", cand_str);
                 some_str.push_str(&sym);
             }
-            some_str.push_str("\n");
+            some_str.push('\n');
         }
 
         write!(f, "\n{}", some_str)
@@ -354,7 +354,7 @@ pub fn parse_sudokus(filepath: &str) -> Vec<SudokuCandidates> {
         let line_no_commas = line.replace(",", "");
         let problem_str_raw = non_numeric_chars
             .replace_all(&line_no_commas, "0")
-            .to_owned();
+            .into_owned();
 
         let problem_raw: Vec<u8> = convert_problem_str(&problem_str_raw);
         let cand = SudokuCandidates::from_vec(problem_raw);
@@ -568,7 +568,7 @@ pub fn wasm_get_sample_sudoku_string(random_number: f64) -> String {
     // use rand::seq::SliceRandom;
     // use rand::thread_rng;
 
-    let problems = vec![
+    let problems = [
         "015040002020560098300010007200000600940001000030680704458000000090872050600430900",
         "270600050000070406006059030040005600081000040029006173390000002000097800807140005",
         "020980040030047601019006080700490000800023907000605000904800006001000300350014020",
