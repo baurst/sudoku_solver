@@ -1,28 +1,97 @@
 .sudoku-table {
     border-spacing: 0;
-    top:0;
-    bottom:0;
-    left:0;
-    right:0;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
 }
 
-.sudoku-table input[type=text]
-{
+.sudoku-table td {
+    padding: 0;
+    margin: 0;
+    width: 2.0rem;
+    height: 2.0rem;
+}
+
+.sudoku-table input[type=text] {
     font-size: 20pt;
-    width:2.0rem;
-    height:2.0rem;
-	margin:0.0rem;
-    padding:0;
+    width: 100%;
+    height: 100%;
+    line-height: 2.0rem;
+    margin: 0.0rem;
+    padding: 0;
     text-align: center;
-    border:0;
+    border: 0;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1/1;
 }
 
-.sudoku-table .right-middle{border-left:1px solid black;border-right:3px solid black;border-top:1px solid black;border-bottom:1px solid black;}
-.sudoku-table .left-middle{border-left:3px solid black;border-right:1px solid black;border-top:1px solid black;border-bottom:1px solid black;}
-.sudoku-table .middle-middle{border-left:1px solid black;border-right:1px solid black;border-top:1px solid black;border-bottom:1px solid black;}
-.sudoku-table .left-top{border-left:3px solid black;border-right:1px solid black;border-top:3px solid black;border-bottom:1px solid black;}
-.sudoku-table .left-bottom{border-left:3px solid black;border-right:1px solid black;border-top:1px solid black;border-bottom:3px solid black;}
-.sudoku-table .middle-bottom{border-left:1px solid black;border-right:1px solid black;border-top:1px solid black;border-bottom:3px solid black;}
-.sudoku-table .middle-top{border-left:1px solid black;border-right:1px solid black;border-top:3px solid black;border-bottom:1px solid black;}
-.sudoku-table .right-bottom{border-left:1px solid black;border-right:3px solid black;border-top:1px solid black;border-bottom:3px solid black;}
-.sudoku-table .right-top{border-left:1px solid black;border-right:3px solid black;border-top:3px solid black;border-bottom:1px solid black;}
+.sudoku-table .right-middle {
+    border-left: 1px solid black;
+    border-right: 3px solid black;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+}
+
+.sudoku-table .left-middle {
+    border-left: 3px solid black;
+    border-right: 1px solid black;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+}
+
+.sudoku-table .middle-middle {
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+}
+
+.sudoku-table .left-top {
+    border-left: 3px solid black;
+    border-right: 1px solid black;
+    border-top: 3px solid black;
+    border-bottom: 1px solid black;
+}
+
+.sudoku-table .left-bottom {
+    border-left: 3px solid black;
+    border-right: 1px solid black;
+    border-top: 1px solid black;
+    border-bottom: 3px solid black;
+}
+
+.sudoku-table .middle-bottom {
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+    border-top: 1px solid black;
+    border-bottom: 3px solid black;
+}
+
+.sudoku-table .middle-top {
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+    border-top: 3px solid black;
+    border-bottom: 1px solid black;
+}
+
+.sudoku-table .right-bottom {
+    border-left: 1px solid black;
+    border-right: 3px solid black;
+    border-top: 1px solid black;
+    border-bottom: 3px solid black;
+}
+
+.sudoku-table .right-top {
+    border-left: 1px solid black;
+    border-right: 3px solid black;
+    border-top: 3px solid black;
+    border-bottom: 1px solid black;
+}
+
+.button-container .btn {
+    width: 10rem;
+}

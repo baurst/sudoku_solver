@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import useSudokuTableCore from "./SudokuTableCore";
-import { Button, Container, Row, Modal, Col} from "react-bootstrap";
-import './SudokuTable.css'
+import { Button, Container, Row, Modal, Col } from "react-bootstrap";
+import './SudokuTable.css';
 
 function tableRow(
   size: number,
@@ -9,7 +9,6 @@ function tableRow(
   sudoku: number[],
   setValueInSudoku: Function,
   isUserInput: boolean[],
-
 ) {
   const sizeElements = Array(size)
     .fill(0)
@@ -34,7 +33,7 @@ const styles = {
     fontWeight: "bold",
     color: "red",
   } as React.CSSProperties,
-}
+};
 
 function tableEntry(
   entryNr: number,
@@ -52,7 +51,8 @@ function tableEntry(
     "right-middle",
     "left-bottom",
     "middle-bottom",
-    "right-bottom"];
+    "right-bottom",
+  ];
 
   const row = Math.floor(entryNr / 9);
   const col = entryNr % 9;
@@ -82,8 +82,7 @@ function tableEntry(
               let parseValue = parseInt(event.currentTarget.value);
               if (isNaN(parseValue)) {
                 setValueInSudoku(entryNr, 0);
-              }
-              else {
+              } else {
                 setValueInSudoku(entryNr, parseInt(event.currentTarget.value));
               }
             }
@@ -112,7 +111,10 @@ const SudokuTable: React.FC = () => {
         <Modal.Header closeButton>
           <Modal.Title>WARNING</Modal.Title>
         </Modal.Header>
-        <Modal.Body><p> Sudoku contains unsolvable conflict(s)!</p> <p> Please fix the conflicts and try again!</p> </Modal.Body>
+        <Modal.Body>
+          <p> Sudoku contains unsolvable conflict(s)!</p>
+          <p> Please fix the conflicts and try again!</p>
+        </Modal.Body>
         <Modal.Footer>
           <Button variant="primary" onClick={handleClose}>
             Close
@@ -120,19 +122,18 @@ const SudokuTable: React.FC = () => {
         </Modal.Footer>
       </Modal>
     );
-  }
+  };
 
   const handleClick = () => {
     if (!isSolving) {
       let sudokuIsOkay = sudokuTableCore.checkSudokuIsSolvable();
-      if(sudokuIsOkay){
+      if (sudokuIsOkay) {
         setSolving(true);
         sudokuTableCore.solveSudoku();
         setSolving(false);
       } else {
         setShowWarning(true);
       }
-
     }
   };
 
@@ -162,16 +163,16 @@ const SudokuTable: React.FC = () => {
           </tbody>
         </table>
       </Row>
-      <Row className="mt-3 justify-content-center">
-          <Button className="ml-2" variant="primary" disabled={isSolving} onClick={handleInsertClick}>
-            Insert Example
-          </Button>
-          <Button className="ml-2" variant="primary" disabled={isSolving} onClick={handleClick}>
-            {isSolving ? "Solving…" : "Solve"}
-          </Button>
-          <Button className="ml-2" variant="primary" disabled={isSolving} onClick={handleClearClick}>
-            Clear
-          </Button>
+      <Row className="mt-3 justify-content-center button-container">
+        <Button className="ml-2" variant="primary" disabled={isSolving} onClick={handleInsertClick}>
+          Insert Example
+        </Button>
+        <Button className="ml-2" variant="primary" disabled={isSolving} onClick={handleClick}>
+          {isSolving ? "Solving…" : "Solve"}
+        </Button>
+        <Button className="ml-2" variant="primary" disabled={isSolving} onClick={handleClearClick}>
+          Clear
+        </Button>
       </Row>
     </Container>
   );
