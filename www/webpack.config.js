@@ -54,5 +54,8 @@ module.exports = {
       //{ from: './public/favicon.ico' }, // <- your path to favicon
       {from: 'public'}, // <- your path to favicon
     ])
-  ]
+  ],
+  experiments: {
+    asyncWebAssembly: true,
+  },
 };
